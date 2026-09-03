@@ -1,0 +1,39 @@
+{
+  "name": "@daily-life/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit -p tsconfig.json && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run ../../apps/web",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@daily-life/shared": "workspace:*",
+    "@tanstack/react-query": "^5.102.8",
+    "animal-island-ui": "^1.8.0",
+    "axios": "^1.20.0",
+    "date-fns": "^4.4.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.3",
+    "zod": "^4.5.4",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "@vitejs/plugin-react": "^6.1.1",
+    "jsdom": "^30.0.1",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.2.2"
+  }
+}

@@ -1,0 +1,21 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.local
+*.log
+.DS_Store
+
+# Runtime data must live outside the static web root.
+/data/
+/uploads/
+/backups/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Playwright output
+playwright-report/
+test-results/

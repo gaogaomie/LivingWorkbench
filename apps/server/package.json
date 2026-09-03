@@ -1,0 +1,37 @@
+{
+  "name": "@daily-life/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "bun build ./src/server.ts --outdir ./dist --target node --format esm --sourcemap=external --external better-sqlite3 --external argon2 --external sharp",
+    "start": "node --env-file-if-exists=../../.env dist/server.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/migrate.ts",
+    "admin:init": "tsx src/cli/init-admin.ts",
+    "admin:reset": "tsx src/cli/reset-admin.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run src"
+  },
+  "dependencies": {
+    "@daily-life/shared": "workspace:*",
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/helmet": "^13.1.1",
+    "@fastify/multipart": "10.1.1",
+    "@fastify/rate-limit": "^10.3.0",
+    "argon2": "^0.44.0",
+    "better-sqlite3": "^13.0.3",
+    "drizzle-orm": "^0.45.2",
+    "exceljs": "4.4.0",
+    "fastify": "^5.12.1",
+    "sharp": "0.35.4",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^26.4.1",
+    "drizzle-kit": "^0.31.10",
+    "tsx": "^4.23.13"
+  }
+}

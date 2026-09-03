@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+:root {
+  color: var(--animal-text-color);
+  background: var(--animal-island-page-bg);
+  font-family: var(--animal-font-family);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --animal-surface-color: var(--animal-bg-color);
+  --animal-success-surface: var(--animal-primary-color-bg);
+  --animal-error-surface: var(--animal-bg-color-secondary);
+  --animal-island-page-bg: #bbe0c9;
+  --animal-island-pattern-wash: rgba(248, 248, 240, 0.46);
+  --animal-island-sidebar-bg-start: #eef4e5;
+  --animal-island-sidebar-bg-end: #e4edd8;
+  --animal-island-sidebar-outline: rgba(248, 248, 240, 0.92);
+  --animal-island-sidebar-shadow: rgba(77, 107, 62, 0.12);
+  --animal-island-sidebar-divider: rgba(121, 79, 39, 0.12);
+  --animal-island-sidebar-profile-bg: rgba(248, 248, 240, 0.72);
+  --animal-island-header-bg-start: #eef4e5;
+  --animal-island-header-bg-end: #f4f5e9;
+  --animal-island-chrome-border: #c9d9bd;
+  --animal-island-nav-hover-bg: rgba(248, 248, 240, 0.58);
+  --animal-island-nav-active-bg: #d9f1e5;
+  --animal-island-text-secondary: #856f55;
+  --animal-island-text-on-peach: #4b2e1b;
+  --life-ai-panel-bg: #d9f1e5;
+  --life-ai-ticket-paper: #fffaf0;
+  --life-ai-ticket-stub: #f7f3df;
+  --life-ai-ticket-accent: #f7cd67;
+  --life-ai-ticket-coral: #fc736d;
+  --life-ai-ticket-ink: #725d42;
+  --life-ai-ticket-muted: #9a835a;
+  --life-ai-ticket-line: rgba(114, 93, 66, 0.28);
+  --life-ai-ticket-pattern: rgba(114, 93, 66, 0.07);
+}
+
+@theme {
+  --color-island-page: var(--animal-island-page-bg);
+  --color-island-surface: var(--animal-island-header-bg-end);
+  --color-island-border: var(--animal-island-chrome-border);
+  --color-island-muted: var(--animal-island-text-secondary);
+  --color-island-active: var(--animal-island-nav-active-bg);
+  --shadow-island: 0 18px 40px var(--animal-island-sidebar-shadow);
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    background: var(--animal-island-page-bg);
+  }
+
+  button,
+  a {
+    font: inherit;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--animal-primary-color);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto;
+      animation-duration: 0.01ms;
+      animation-iteration-count: 1;
+      transition-duration: 0.01ms;
+    }
+  }
+}
+
+@layer components {
+  /* 浏览器自动填充伪类无法由组件状态控制，集中保留在全局边界。 */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--animal-text-color);
+    caret-color: var(--animal-text-color);
+    background-color: var(--login-input-surface, var(--animal-bg-color));
+    background-image: none;
+    box-shadow: 0 0 0 1000px var(--login-input-surface, var(--animal-bg-color)) inset;
+  }
+}
+
+@keyframes login-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+}
+
+@keyframes ai-observer-float {
+  from {
+    transform: translateY(0) rotate(0);
+  }
+
+  to {
+    transform: translateY(-7px) rotate(2deg);
+  }
+}
+
+@keyframes ai-ticket-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

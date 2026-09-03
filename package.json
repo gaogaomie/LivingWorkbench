@@ -1,0 +1,35 @@
+{
+  "name": "daily-life-workbench",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.3.6",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run --filter './apps/*' dev",
+    "dev:web": "bun run --cwd apps/web dev",
+    "dev:server": "bun run --cwd apps/server dev",
+    "build": "bun run --filter '*' build",
+    "typecheck": "bun run --filter '*' typecheck",
+    "test": "vitest run",
+    "test:web": "vitest run apps/web",
+    "test:e2e": "bun run --cwd apps/web test:e2e",
+    "check:web-size": "bun run scripts/check-web-file-size.ts",
+    "test:watch": "vitest",
+    "lint": "biome check .",
+    "lint:backend": "biome check apps/server/src packages/shared/src scripts/check-backend-conventions.ts",
+    "check:backend-conventions": "bun run scripts/check-backend-conventions.ts",
+    "check:backend": "bun run lint:backend && bun run check:backend-conventions && bun run --cwd packages/shared typecheck && bun run --cwd apps/server typecheck && bunx vitest run apps/server/src packages/shared/src && bun run --cwd apps/server build",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "check": "bun run lint && bun run check:web-size && bun run typecheck && bun run test && bun run build"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.11",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
+  }
+}
