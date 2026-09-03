@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
+import type { AccountSummary, AuthUser } from "@daily-life/shared";
 import { argon2id, hash, verify } from "argon2";
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { and, asc, eq, gt, isNull } from "drizzle-orm";
 import type { AppDatabase } from "../db/client";
 import { appSettings, sessions, users } from "../db/schema";
 import { createOpaqueToken, hashToken, tokenMatches } from "../security/token";
@@ -13,7 +14,7 @@ const passwordHashOptions = {
 } as const;
 
 export interface AuthenticatedSession {
-  user: { id: string; username: string };
+  user: AuthUser;
   expiresAt: string;
   csrfTokenHash: string;
   sessionIdHash: string;
@@ -25,10 +26,7 @@ export class AuthService {
     private readonly sessionTtlDays: number,
   ) {}
 
-  async initializeAdmin(
-    username: string,
-    password: string,
-  ): Promise<{ id: string; username: string }> {
+  async initializeAdmin(username: string, password: string): Promise<AuthUser> {
     const normalizedUsername = username.trim().toLowerCase();
     const existing = this.db.select({ id: users.id }).from(users).limit(1).get();
 
@@ -41,6 +39,7 @@ export class AuthService {
       id: randomUUID(),
       username: normalizedUsername,
       passwordHash: await hash(password, passwordHashOptions),
+      role: "admin" as const,
       createdAt: now,
       updatedAt: now,
       deletedAt: null,
@@ -51,7 +50,58 @@ export class AuthService {
       tx.insert(appSettings).values({ userId: user.id, updatedAt: now }).run();
     });
 
-    return { id: user.id, username: user.username };
+    return { id: user.id, username: user.username, role: user.role };
+  }
+
+  async createMemberAccount(
+    username: string,
+    password: string,
+  ): Promise<{ status: "created"; account: AccountSummary } | { status: "conflict" }> {
+    const normalizedUsername = username.trim().toLowerCase();
+    const now = new Date().toISOString();
+    const account: AccountSummary = {
+      id: randomUUID(),
+      username: normalizedUsername,
+      role: "member",
+      createdAt: now,
+    };
+    const passwordHash = await hash(password, passwordHashOptions);
+
+    const wasCreated = this.db.transaction((tx) => {
+      const inserted = tx
+        .insert(users)
+        .values({
+          ...account,
+          passwordHash,
+          updatedAt: now,
+          deletedAt: null,
+        })
+        .onConflictDoNothing({ target: users.username })
+        .returning({ id: users.id })
+        .get();
+      if (!inserted) {
+        return false;
+      }
+      tx.insert(appSettings).values({ userId: account.id, updatedAt: now }).run();
+      return true;
+    });
+
+    return wasCreated ? { status: "created", account } : { status: "conflict" };
+  }
+
+  listAccounts(): AccountSummary[] {
+    return this.db
+      .select({
+        id: users.id,
+        username: users.username,
+        role: users.role,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .where(isNull(users.deletedAt))
+      .orderBy(asc(users.role), asc(users.createdAt))
+      .limit(100)
+      .all();
   }
 
   async resetAdminCredentials(
@@ -59,18 +109,18 @@ export class AuthService {
     password: string,
   ): Promise<{ id: string; username: string }> {
     const normalizedUsername = username.trim().toLowerCase();
-    const existingUsers = this.db
+    const existingAdmins = this.db
       .select({ id: users.id })
       .from(users)
-      .where(isNull(users.deletedAt))
+      .where(and(eq(users.role, "admin"), isNull(users.deletedAt)))
       .limit(2)
       .all();
 
-    if (existingUsers.length !== 1 || !existingUsers[0]) {
-      throw new Error("管理员尚未初始化，或数据库中存在多个有效账号，无法安全重置。");
+    if (existingAdmins.length !== 1 || !existingAdmins[0]) {
+      throw new Error("管理员尚未初始化，或数据库中存在多个管理员账号，无法安全重置。");
     }
 
-    const admin = existingUsers[0];
+    const admin = existingAdmins[0];
     const now = new Date().toISOString();
     const passwordHash = await hash(password, passwordHashOptions);
 
@@ -90,7 +140,12 @@ export class AuthService {
     password: string,
   ): Promise<{ sessionToken: string; csrfToken: string; session: AuthenticatedSession } | null> {
     const user = this.db
-      .select({ id: users.id, username: users.username, passwordHash: users.passwordHash })
+      .select({
+        id: users.id,
+        username: users.username,
+        passwordHash: users.passwordHash,
+        role: users.role,
+      })
       .from(users)
       .where(and(eq(users.username, username.trim().toLowerCase()), isNull(users.deletedAt)))
       .get();
@@ -122,7 +177,7 @@ export class AuthService {
       sessionToken,
       csrfToken,
       session: {
-        user: { id: user.id, username: user.username },
+        user: { id: user.id, username: user.username, role: user.role },
         expiresAt,
         csrfTokenHash,
         sessionIdHash,
@@ -136,6 +191,7 @@ export class AuthService {
       .select({
         userId: users.id,
         username: users.username,
+        role: users.role,
         csrfTokenHash: sessions.csrfTokenHash,
         expiresAt: sessions.expiresAt,
       })
@@ -162,7 +218,7 @@ export class AuthService {
       .run();
 
     return {
-      user: { id: result.userId, username: result.username },
+      user: { id: result.userId, username: result.username, role: result.role },
       expiresAt: result.expiresAt,
       csrfTokenHash: result.csrfTokenHash,
       sessionIdHash,

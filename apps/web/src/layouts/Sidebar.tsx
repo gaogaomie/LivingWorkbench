@@ -4,7 +4,7 @@ import { zhCN } from "date-fns/locale";
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import dailyAnimals from "../assets/daily-animals.png";
-import { dataNavigation, primaryNavigation } from "../constants/route-paths";
+import { adminNavigation, dataNavigation, primaryNavigation } from "../constants/route-paths";
 import { useLogout } from "../data-provider/mutations/use-logout";
 import { useAuthSession } from "../data-provider/queries/use-auth-session";
 
@@ -94,6 +94,9 @@ export function Sidebar() {
         </NavLink>
         <NavigationGroup label="生活模块" items={lifeNavigation} />
         <NavigationGroup label="数据" items={dataNavigation} />
+        {authSession.data?.user.role === "admin" ? (
+          <NavigationGroup label="管理" items={adminNavigation} />
+        ) : null}
       </div>
       <footer className="rounded-2xl bg-white/60 p-3">
         <div className="flex items-center justify-between gap-2">

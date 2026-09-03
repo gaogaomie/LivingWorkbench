@@ -141,7 +141,9 @@ test("到期日程创建后立即提醒，完成后刷新提醒状态", async ({
 
   await page.getByLabel("事项", { exact: true }).fill("P0 到期提醒");
   await page.getByLabel("时间").click();
-  await page.getByRole("button", { name: `${Number(current.time.slice(0, 2))} 时` }).click();
+  await page
+    .getByRole("button", { name: `${Number(current.time.slice(0, 2))} 时`, exact: true })
+    .click();
   await page
     .getByRole("button", { name: `${Number(current.time.slice(3, 5))} 分`, exact: true })
     .click();

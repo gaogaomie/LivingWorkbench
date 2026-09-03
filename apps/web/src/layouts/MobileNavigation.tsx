@@ -1,12 +1,18 @@
 import { useEffect, useId, useRef } from "react";
 import { NavLink } from "react-router-dom";
-import { dataNavigation, primaryNavigation } from "../constants/route-paths";
+import { adminNavigation, dataNavigation, primaryNavigation } from "../constants/route-paths";
+import { useAuthSession } from "../data-provider/queries/use-auth-session";
 import { useUiStore } from "../stores/ui.store";
 
 export function MobileNavigation() {
   const isOpen = useUiStore((state) => state.mobileDrawerOpen);
   const setOpen = useUiStore((state) => state.setMobileDrawerOpen);
-  const items = [...primaryNavigation, ...dataNavigation];
+  const authSession = useAuthSession();
+  const items = [
+    ...primaryNavigation,
+    ...dataNavigation,
+    ...(authSession.data?.user.role === "admin" ? adminNavigation : []),
+  ];
   const menuId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
 

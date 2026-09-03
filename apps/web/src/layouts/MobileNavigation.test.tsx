@@ -3,9 +3,13 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useUiStore } from "../stores/ui.store";
 import { MobileNavigation } from "./MobileNavigation";
+
+vi.mock("../data-provider/queries/use-auth-session", () => ({
+  useAuthSession: () => ({ data: { user: { role: "member" } } }),
+}));
 
 describe("MobileNavigation", () => {
   beforeEach(() => useUiStore.setState({ mobileDrawerOpen: false }));

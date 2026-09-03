@@ -21,6 +21,7 @@ import {
   TodoRepository,
 } from "./repositories/life.repository";
 import { TrashRepository } from "./repositories/trash.repository";
+import { registerAdminRoutes } from "./routes/admin";
 import { registerAiRoutes } from "./routes/ai";
 import { registerAuthRoutes } from "./routes/auth";
 import { registerDataRoutes } from "./routes/data";
@@ -89,6 +90,11 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await app.register(registerHealthRoutes, { prefix: "/api/v1/health", database });
   await app.register(registerAuthRoutes, {
     prefix: "/api/v1/auth",
+    authService,
+    config,
+  });
+  await app.register(registerAdminRoutes, {
+    prefix: "/api/v1/admin",
     authService,
     config,
   });

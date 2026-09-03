@@ -31,6 +31,7 @@ export const router = createBrowserRouter([
       { path: "media", lazy: () => import("../pages/media") },
       { path: "timeline", lazy: () => import("../pages/timeline") },
       { path: "settings", lazy: () => import("../pages/settings") },
+      { path: "settings/accounts", lazy: () => import("../pages/accounts") },
       { path: "settings/ai", lazy: () => import("../pages/settings") },
       { path: "settings/data", lazy: () => import("../pages/settings") },
       { path: "settings/appearance", lazy: () => import("../pages/settings") },

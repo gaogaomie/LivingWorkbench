@@ -1,5 +1,6 @@
 export const queryKeys = {
   authSession: ["auth", "session"] as const,
+  adminAccounts: ["admin", "accounts"] as const,
   health: ["server", "health"] as const,
   financeMonth: (month: string) => ["finance", "month", month] as const,
   habits: (date: string) => ["habits", date] as const,

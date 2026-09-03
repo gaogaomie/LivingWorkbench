@@ -19,6 +19,7 @@ async function fulfill(route: Route, data: unknown, status = 200) {
 }
 
 test("财务记录在总览和时光档案同步，并可删除后恢复", async ({ page }) => {
+  await page.clock.setFixedTime(new Date(timestamp));
   let entry: FinanceEntry | null = null;
   let deletedAt: string | null = null;
 
@@ -176,7 +177,24 @@ test("财务记录在总览和时光档案同步，并可删除后恢复", async
   await page.getByRole("button", { name: "记一笔", exact: true }).click();
   await page.getByLabel("金额（元）").fill("28.50");
   await page.getByLabel("备注").fill("闭环午餐");
+  await expect(page.getByLabel("金额（元）")).toHaveValue("28.50");
+  await expect(page.getByLabel("备注")).toHaveValue("闭环午餐");
+  const entryCreated = page.waitForResponse((response) => {
+    const request = response.request();
+    return (
+      request.method() === "POST" &&
+      new URL(response.url()).pathname.endsWith("/api/v1/finance/entries")
+    );
+  });
+  const financeRefreshed = page.waitForResponse((response) => {
+    const request = response.request();
+    return (
+      request.method() === "GET" && new URL(response.url()).pathname.endsWith("/api/v1/finance")
+    );
+  });
   await page.getByRole("button", { name: "保存这笔记录" }).click();
+  await entryCreated;
+  await financeRefreshed;
   const ledgerTable = page.getByRole("table");
   await expect(ledgerTable.getByRole("columnheader", { name: "日期" })).toBeVisible();
   await expect(ledgerTable.getByRole("columnheader", { name: "分类" })).toBeVisible();

@@ -16,7 +16,12 @@ import {
 } from "@/data-provider/life";
 import { useServerHealth } from "@/data-provider/queries/use-server-health";
 import { formatLocalDate, formatMoneyFen } from "@/presentation/domain-formatters";
+import {
+  dismissFirstUseGuide,
+  readFirstUseGuideDismissed,
+} from "@/services/onboarding-preferences.service";
 import { AiSummarySection } from "./AiSummarySection";
+import { FirstUseGuide } from "./FirstUseGuide";
 
 const quickActions = [
   { label: "记一笔", key: "finance", primary: false },
@@ -37,6 +42,9 @@ export function OverviewPage() {
   const today = format(now, "yyyy-MM-dd");
   const month = today.slice(0, 7);
   const [quickEntry, setQuickEntry] = useState<QuickEntry | null>(null);
+  const [isFirstUseGuideDismissed, setIsFirstUseGuideDismissed] = useState(
+    readFirstUseGuideDismissed,
+  );
   const overview = useOverview(today);
   const financeEntry = useCreateFinanceEntry(month);
   const fitnessMutations = useFitnessMutations(today);
@@ -48,6 +56,17 @@ export function OverviewPage() {
     label: list.name,
   }));
   const closeQuickEntry = () => setQuickEntry(null);
+  const overviewHasNoRecords =
+    overview.data?.finance.entryCount === 0 &&
+    overview.data.habits.planned === 0 &&
+    overview.data.schedule.today === 0 &&
+    overview.data.recent.length === 0;
+  const showFirstUseGuide = overviewHasNoRecords && !isFirstUseGuideDismissed;
+
+  const dismissGuide = () => {
+    dismissFirstUseGuide();
+    setIsFirstUseGuideDismissed(true);
+  };
 
   return (
     <section className="grid gap-7">
@@ -72,6 +91,10 @@ export function OverviewPage() {
           </div>
         </div>
       </header>
+
+      {showFirstUseGuide ? (
+        <FirstUseGuide onStart={() => setQuickEntry("finance")} onDismiss={dismissGuide} />
+      ) : null}
 
       <AiSummarySection date={now} />
 

@@ -107,7 +107,7 @@ function FinanceEntryForm({
   };
 
   return (
-    <Form id={formId} layout="vertical" initialValues={initialValues} onFinish={submit}>
+    <Form id={formId} layout="vertical" onFinish={submit}>
       <FormItem name="type" label="收支类型">
         <Radio
           options={[

@@ -19,6 +19,9 @@ export const users = sqliteTable(
     id: text("id").primaryKey(),
     username: text("username").notNull(),
     passwordHash: text("password_hash").notNull(),
+    role: text("role", { enum: ["admin", "member"] })
+      .notNull()
+      .default("member"),
     ...timestampColumns(),
   },
   (table) => [uniqueIndex("users_username_uq").on(table.username)],

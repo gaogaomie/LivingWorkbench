@@ -91,7 +91,7 @@ export function Component() {
                   <Input
                     size="large"
                     autoComplete="username"
-                    placeholder="输入管理员用户名"
+                    placeholder="输入用户名"
                     prefix={<Icon name="icon-miles" size={20} />}
                     allowClear
                     disabled={login.isPending}
@@ -103,7 +103,7 @@ export function Component() {
                     size="large"
                     type="password"
                     autoComplete="current-password"
-                    placeholder="输入管理员密码"
+                    placeholder="输入密码"
                     prefix={<Icon name="icon-design" size={20} />}
                     disabled={login.isPending}
                   />

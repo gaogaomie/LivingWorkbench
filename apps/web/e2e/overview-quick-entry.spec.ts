@@ -126,7 +126,20 @@ test("首页四个快捷入口在抽屉中保存并局部刷新总览", async ({
 
   await page.goto("/");
 
-  await page.getByRole("button", { name: "记一笔", exact: true }).click();
+  const firstUseGuide = page.getByRole("region", { name: "先记一件真的发生过的小事" });
+  await expect(firstUseGuide).toBeVisible();
+  await firstUseGuide.getByRole("button", { name: "暂时跳过" }).click();
+  await expect(firstUseGuide).toHaveCount(0);
+  await page.reload();
+  await expect(firstUseGuide).toHaveCount(0);
+  await page.evaluate(() => window.localStorage.clear());
+  await page.reload();
+  await expect(firstUseGuide).toBeVisible();
+  await firstUseGuide.getByRole("button", { name: "先看示例" }).click();
+  await expect(page.getByRole("region", { name: "示例记录预览" })).toContainText(
+    "不会写入你的真实数据",
+  );
+  await firstUseGuide.getByRole("button", { name: "记下第一笔" }).click();
   await page.getByLabel("金额（元）").fill("28.50");
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog", { name: "还有内容没有保存" })).toBeVisible();
@@ -137,6 +150,7 @@ test("首页四个快捷入口在抽屉中保存并局部刷新总览", async ({
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByText("¥28.50", { exact: true })).toBeVisible();
   await expect(page.getByText("首页午餐", { exact: true })).toBeVisible();
+  await expect(firstUseGuide).toHaveCount(0);
 
   await page.getByRole("button", { name: "排日程", exact: true }).click();
   await page.getByLabel("事项", { exact: true }).fill("首页安排复盘");

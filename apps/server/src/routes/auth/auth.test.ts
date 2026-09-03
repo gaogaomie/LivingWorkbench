@@ -48,7 +48,9 @@ describe("auth routes", () => {
 
     expect(session.statusCode).toBe(200);
     const sessionBody = session.json();
-    expect(sessionBody).toMatchObject({ data: { user: { username: "owner" } } });
+    expect(sessionBody).toMatchObject({
+      data: { user: { username: "owner", role: "admin" } },
+    });
 
     const logout = await app.inject({
       method: "POST",
