@@ -2,6 +2,7 @@ import { type CreateTodo, todoPriorityLabels } from "@daily-life/shared";
 import { Button, DatePicker, Form, FormItem, Input, Select, TimePicker } from "animal-island-ui";
 import { useState } from "react";
 import { notify } from "@/services/notification.service";
+import { ScheduleReminderCapabilityNote } from "./ScheduleReminderCapabilityNote";
 
 const priorityOptions = Object.entries(todoPriorityLabels).map(([key, label]) => ({ key, label }));
 const reminderOptions = [
@@ -125,13 +126,16 @@ export function ScheduleCreateForm({
         </FormItem>
       </div>
       <FormItem name="reminder" label="到时提醒">
-        <div className="w-fit max-w-full">
-          <Select
-            aria-label="到时提醒"
-            options={[...reminderOptions]}
-            value={reminder}
-            onChange={(value) => isReminderKey(value) && setReminder(value)}
-          />
+        <div className="grid max-w-full gap-2">
+          <div className="w-fit max-w-full">
+            <Select
+              aria-label="到时提醒"
+              options={[...reminderOptions]}
+              value={reminder}
+              onChange={(value) => isReminderKey(value) && setReminder(value)}
+            />
+          </div>
+          <ScheduleReminderCapabilityNote />
         </div>
       </FormItem>
       <FormItem name="note" label="备注">

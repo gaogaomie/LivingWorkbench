@@ -186,7 +186,7 @@ test("财务记录在总览和时光档案同步，并可删除后恢复", async
   await expect(page.getByText("闭环午餐")).toBeVisible();
   await expect(page.getByText("+¥18.50")).toBeVisible();
 
-  const editEntryButton = page.getByRole("button", { name: "编辑", exact: true });
+  const editEntryButton = page.getByRole("button", { name: "编辑“闭环午餐”", exact: true });
   await editEntryButton.press("Enter");
   await expect(page.getByRole("radio", { name: "支出" })).toBeChecked();
   await expect(page.getByLabel("金额（元）")).toHaveValue("28.50");
@@ -222,14 +222,14 @@ test("财务记录在总览和时光档案同步，并可删除后恢复", async
   await expect(page.getByText("闭环午餐")).toBeVisible();
 
   await page.goto("/finance");
-  await page.getByRole("button", { name: "删除" }).press("Enter");
+  await page.getByRole("button", { name: "删除“闭环午餐”" }).press("Enter");
   await expect(page.getByText("移到回收站？")).toBeVisible();
   await page.getByRole("button", { name: "确认删除" }).click();
   await expect(page.getByText("这个月还没有记录。")).toBeVisible();
 
   await page.goto("/settings");
   await expect(page.getByText("闭环午餐")).toBeVisible();
-  await page.getByRole("button", { name: "恢复记录" }).click();
+  await page.getByRole("button", { name: "恢复“闭环午餐”" }).click();
   await expect(page.getByText("回收站是空的。")).toBeVisible();
 
   await page.goto("/finance");

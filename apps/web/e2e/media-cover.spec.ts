@@ -94,7 +94,7 @@ test("书影音封面可随作品上传并在编辑时替换", async ({ page }) 
   await page.goto("/media");
   await page.getByRole("button", { name: "收藏作品", exact: true }).click();
   await page.getByLabel("作品名称").fill("P0 封面作品");
-  await page.locator('input[type="file"]').setInputFiles({
+  await page.getByLabel("作品封面文件").setInputFiles({
     name: "cover.png",
     mimeType: "image/png",
     buffer: transparentPng,
@@ -105,8 +105,8 @@ test("书影音封面可随作品上传并在编辑时替换", async ({ page }) 
   await expect(page.getByRole("img", { name: "P0 封面作品封面" })).toBeVisible();
   expect(uploadCount).toBe(1);
 
-  await page.getByRole("button", { name: "编辑", exact: true }).click();
-  await page.locator('input[type="file"]').setInputFiles({
+  await page.getByRole("button", { name: "编辑“P0 封面作品”", exact: true }).click();
+  await page.getByLabel("作品封面文件").setInputFiles({
     name: "replacement.png",
     mimeType: "image/png",
     buffer: transparentPng,

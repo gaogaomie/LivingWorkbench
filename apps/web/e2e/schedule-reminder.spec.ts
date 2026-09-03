@@ -135,8 +135,11 @@ test("到期日程创建后立即提醒，完成后刷新提醒状态", async ({
   await page.goto("/schedule");
   await expect.poll(() => dueQueryCount).toBeGreaterThanOrEqual(1);
   await page.getByRole("button", { name: "加入日程", exact: true }).click();
+  await expect(page.getByRole("note", { name: "提醒能力说明" })).toContainText(
+    "关闭工作台后不会发送系统通知",
+  );
 
-  await page.getByLabel("事项").fill("P0 到期提醒");
+  await page.getByLabel("事项", { exact: true }).fill("P0 到期提醒");
   await page.getByLabel("时间").click();
   await page.getByRole("button", { name: `${Number(current.time.slice(0, 2))} 时` }).click();
   await page
@@ -160,8 +163,8 @@ test("到期日程创建后立即提醒，完成后刷新提醒状态", async ({
   ).toBeVisible();
   expect(item?.reminderMinutesBefore).toBe(0);
 
-  await page.getByRole("button", { name: "完成", exact: true }).click();
-  await expect(page.getByRole("button", { name: "恢复", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "完成“P0 到期提醒”", exact: true }).click();
+  await expect(page.getByRole("button", { name: "恢复“P0 到期提醒”", exact: true })).toBeVisible();
   await expect.poll(() => dueQueryCount).toBeGreaterThanOrEqual(3);
   expect(emptyDueQueryAfterCompletion).toBe(true);
 });

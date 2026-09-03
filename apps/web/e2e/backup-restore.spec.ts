@@ -101,7 +101,7 @@ test("备份恢复先预检风险，再携带校验码与 CSRF 执行恢复", as
   await expect(firstTrashRecord).toHaveCSS("border-bottom-style", "dashed");
   await expect(firstTrashRecord).toHaveCSS("border-bottom-width", "2px");
 
-  await page.locator('input[type="file"]').setInputFiles({
+  await page.getByLabel("Excel 备份文件").setInputFiles({
     name: "riji-backup-2026-09-03.xlsx",
     mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     buffer: Buffer.from("PK-test-workbook"),

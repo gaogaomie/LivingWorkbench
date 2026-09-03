@@ -18,6 +18,7 @@ import { useMemo, useState } from "react";
 import { DeleteRecordButton } from "@/components/DeleteRecordButton";
 import { RecordEditorActions, RecordEditorDrawer } from "@/components/RecordEditorDrawer";
 import { ScheduleCreateForm } from "@/components/record-editors/ScheduleCreateForm";
+import { ScheduleReminderCapabilityNote } from "@/components/record-editors/ScheduleReminderCapabilityNote";
 import { useSchedule, useScheduleMutations } from "@/data-provider/life";
 import { formatLocalDate } from "@/presentation/domain-formatters";
 import { notify } from "@/services/notification.service";
@@ -467,13 +468,16 @@ export function Component() {
               </FormItem>
             </div>
             <FormItem name="reminder" label="到时提醒">
-              <div className="w-fit max-w-full">
-                <Select
-                  aria-label="到时提醒"
-                  options={reminderOptions}
-                  value={reminder}
-                  onChange={setReminder}
-                />
+              <div className="grid max-w-full gap-2">
+                <div className="w-fit max-w-full">
+                  <Select
+                    aria-label="到时提醒"
+                    options={reminderOptions}
+                    value={reminder}
+                    onChange={setReminder}
+                  />
+                </div>
+                <ScheduleReminderCapabilityNote />
               </div>
             </FormItem>
             <FormItem name="note" label="备注">

@@ -1,29 +1,74 @@
 # 日常集 · 生活工作台
 
-个人生活记录工作台的一期 Web 工程。产品以“今日总览”和“时光档案”为双聚合入口，覆盖财务、习惯、健身、日程、待买和书影音六类记录。
+一个把日常账目、习惯、身体数据、日程、购物愿望和书影音记录收进同一处的个人生活工作台。所有记录会统一汇入“今日总览”和“时光档案”，方便快速记录，也方便在以后回看某一天。
 
-## 平台预览
+## 主要功能
 
-“日常集”把分散的生活记录收进同一个工作台：在今日总览快速查看支出、习惯、待办和最近动态，也可以分别管理记账理财、习惯健康、减脂健身、日程统筹、待买清单与书影音记录，所有内容会统一沉淀到时光档案。
+- **今日总览**：聚合生活指数、快捷记录、财务、习惯、待办和最近动态。
+- **记账理财**：记录收支、设置月度预算，并按月份和分类查看资金流向。
+- **习惯健康**：管理布尔、计数和时长习惯，查看连续完成情况与 30 天热力图。
+- **减脂健身**：记录体重、体脂与运动，观察趋势并管理个人目标。
+- **日程统筹**：在七天视图中安排待办和日程，支持应用内提醒。
+- **待买清单**：记录待买物品、预计价格和状态，汇总待买预算。
+- **书影音**：收藏书籍、电影、剧集等作品，记录进度、评分、感受和封面。
+- **时光档案**：按时间、来源和关键词检索跨模块记录，生成月度或年度回顾。
+- **数据安全**：软删除与恢复记录，导出业务全量 Excel，并在恢复前完成格式和关联校验。
 
-![日常集今日总览，展示生活模块入口、快捷记录、生活指数和最近记录](./docs/images/platform-overview.jpg)
+## 界面预览
 
-## 工程边界
+### 今日总览
+
+![今日总览：生活指数、AI 生活观察、快捷记录与最近动态](./docs/images/modules/overview.png)
+
+### 记账理财
+
+![记账理财：月度收支、预算与分类流向](./docs/images/modules/finance.png)
+
+### 习惯健康
+
+![习惯健康：今日完成情况、连续记录与习惯热力图](./docs/images/modules/habits.png)
+
+### 减脂健身
+
+![减脂健身：体重指标与趋势图](./docs/images/modules/fitness.png)
+
+### 日程统筹
+
+![日程统筹：七天安排、待办统计与提醒](./docs/images/modules/schedule.png)
+
+### 待买清单
+
+![待买清单：待买数量、预计预算与分类统计](./docs/images/modules/shopping.png)
+
+### 书影音
+
+![书影音：作品收藏、进度、评分与封面](./docs/images/modules/media.png)
+
+### 时光档案
+
+![时光档案：跨模块生活回顾、筛选与搜索](./docs/images/modules/timeline.png)
+
+### 设置与回收站
+
+![设置与回收站：Excel 备份恢复与软删除记录找回](./docs/images/modules/settings.png)
+
+## 工程架构
 
 ```text
-apps/web       React + Vite 在线客户端
-apps/server    Fastify JSON API（正式数据的唯一入口）
-packages/shared  前后端共享 DTO、Zod Schema 与纯类型
+apps/web          React + Vite Web 客户端
+apps/server       Fastify JSON API
+packages/shared   前后端共享 DTO、Zod Schema 与纯类型
 ```
 
-- 正式业务数据只保存在服务端 SQLite，不在浏览器维护业务副本。
-- Web 只依赖有版本的 API 合约，不了解 Drizzle 表结构。
-- Server Route 负责 HTTP 边界；业务编排、领域计算、Repository 与 AI 适配分别隔离。
-- 二期 Tauri 复用 Web 页面与 API Client，仍访问同一套服务端 API。
+- 正式业务数据只保存在服务端 SQLite，浏览器不维护业务副本。
+- Web 只依赖带版本的 API 合约，不了解 Drizzle 表结构。
+- Server Route 负责 HTTP 边界，业务编排、领域计算、Repository 与 AI 适配相互隔离。
+- 数据变更使用乐观并发校验；删除采用软删除，可在回收站恢复。
+- API 响应统一使用 `code / message / data` 结构。
 
-## 开始开发
+## 本地开发
 
-需要 Bun 1.3 或更新版本。
+需要 [Bun](https://bun.sh/) 1.3 或更新版本。
 
 ```bash
 bun install
@@ -33,19 +78,19 @@ ADMIN_USERNAME=owner ADMIN_PASSWORD='请替换为至少8位的强密码' bun run
 bun run dev
 ```
 
-默认地址：Web `http://localhost:5173`，API `http://localhost:8787`。Vite 会把 `/api` 请求代理给本地 API。
+默认地址：Web `http://localhost:5173`，API `http://localhost:8787`。Vite 会把 `/api` 请求代理到本地 API。
 
-也可以打开两个终端，分别启动前后端：
+也可以分别启动前后端：
 
 ```bash
-# 终端 1：启动后端 API
+# 终端 1
 bun run dev:server
 
-# 终端 2：启动前端 Web
+# 终端 2
 bun run dev:web
 ```
 
-`admin:init` 只允许在空数据库中执行一次。密码使用 Argon2id 保存；命令不会把明文写入数据库或配置文件。正式部署前请替换 `.env` 中的 `SESSION_SECRET`，并确保数据目录位于持久化磁盘。
+`admin:init` 只允许在空数据库中执行一次。密码使用 Argon2id 保存，不会以明文写入数据库或配置文件。部署前请替换 `.env` 中的 `SESSION_SECRET`，并确保数据目录位于持久化磁盘。
 
 如果首次初始化时填错了凭据，可以在本机重置唯一管理员。重置会立即撤销已有登录会话：
 
@@ -53,26 +98,22 @@ bun run dev:web
 ADMIN_USERNAME=新的用户名 ADMIN_PASSWORD='新的强密码' bun run --cwd apps/server admin:reset
 ```
 
-常用命令：
+## 常用命令
 
 ```bash
 bun run lint
+bun run check:web-size
 bun run typecheck
 bun run test
+bun run test:e2e
 bun run build
 bun run check
 ```
 
-## 当前阶段
+## 项目文档
 
-仓库已完成 Web 一期核心模块的首轮纵向切片：单管理员登录、财务、习惯健康、减脂健身、日程统筹、待买清单、书影音，以及汇聚上述记录的时光档案。每个模块均已贯通共享数据合约、服务端 Repository、鉴权 API、Web 数据层和 Animal Island 风格页面；今日总览会同步展示财务、习惯、待办和最近生活记录。
-
-财务数据采用以下约束：金额以整数“分”存储；新增账目由客户端生成 UUID，可安全重试；更新与删除通过 `expectedUpdatedAt` 做乐观并发校验；删除采用软删除。
-
-当前属于可操作的 MVP：六类记录的创建、编辑、状态流转、核心统计和跨模块时间线已可用。财务及五类生活记录均支持带确认的软删除，并可在设置页“最近删除”中恢复；编辑、恢复和删除都带并发冲突保护。日程支持到时、提前 10/30/60 分钟或提前 1 天的应用内提醒。书影音支持封面上传、压缩、预览、替换与移除。设置页支持带六类可读工作表、版本、实体计数和 SHA-256 校验的业务全量 Excel 导出、恢复预检及事务恢复。系统级通知仍在后续阶段。
-
-总览通过单一聚合接口读取财务、习惯、待办和最近记录，避免模块请求瀑布；时光档案使用不透明游标分页，每次按需加载 20 条较早记录。
-
-阶段交接和后续任务统一记录在 [`handoff.md`](./handoff.md)。
-
-后续开发与代码审查统一遵循 [`docs/编码规范.md`](./docs/编码规范.md)；Fastify 服务端还必须遵循 [`docs/Fastify后端编码规范.md`](./docs/Fastify后端编码规范.md)。代码代理的强制执行规则位于 [`AGENTS.md`](./AGENTS.md)。
+- [产品需求文档](./docs/PRD-日常集生活工作台.md)
+- [Web 技术方案](./docs/技术方案-日常集生活工作台-Web一期.md)
+- [前端编码规范](./docs/编码规范.md)
+- [Fastify 后端编码规范](./docs/Fastify后端编码规范.md)
+- [代码代理规则](./AGENTS.md)

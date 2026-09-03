@@ -9,12 +9,19 @@ interface MockButtonProps {
   type?: string;
   children?: ReactNode;
   disabled?: boolean;
+  "aria-label"?: string;
   onClick?: MouseEventHandler<HTMLButtonElement>;
 }
 
 vi.mock("animal-island-ui", () => ({
-  Button: ({ type, children, disabled, onClick }: MockButtonProps) => (
-    <button type="button" data-button-type={type} disabled={disabled} onClick={onClick}>
+  Button: ({ type, children, disabled, "aria-label": ariaLabel, onClick }: MockButtonProps) => (
+    <button
+      type="button"
+      data-button-type={type}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      onClick={onClick}
+    >
       {children}
     </button>
   ),
@@ -42,7 +49,7 @@ describe("DeleteRecordButton", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: "删除" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: "删除“午饭”" })).toHaveAttribute(
       "data-button-type",
       "dashed",
     );

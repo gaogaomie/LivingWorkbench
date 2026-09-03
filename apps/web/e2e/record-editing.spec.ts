@@ -105,7 +105,7 @@ test("习惯创建后可编辑名称并保留并发版本", async ({ page }) => 
   await page.getByRole("button", { name: "开始这个习惯" }).click();
   await expect(page.getByRole("heading", { name: "晨间阅读" })).toBeVisible();
 
-  await page.getByRole("button", { name: "编辑", exact: true }).click();
+  await page.getByRole("button", { name: "编辑“晨间阅读”", exact: true }).click();
   await expect(page.getByLabel("习惯名称")).toHaveValue("晨间阅读");
   await page.getByLabel("习惯名称").fill("晨间深度阅读");
   await page.getByRole("button", { name: "保存习惯修改" }).click();
@@ -151,7 +151,7 @@ test("已有习惯进入编辑时回填名称与目标字段", async ({ page }) 
   });
 
   await page.goto("/habits");
-  await page.getByRole("button", { name: "编辑", exact: true }).click();
+  await page.getByRole("button", { name: "编辑“喝水”", exact: true }).click();
 
   await expect(page.getByLabel("习惯名称")).toHaveValue("喝水");
   await expect(page.getByRole("combobox", { name: "目标类型" })).toContainText("累计次数");
@@ -220,7 +220,7 @@ test("健身记录创建后可编辑体重并刷新趋势数据", async ({ page 
   await page.getByRole("button", { name: "保存今日记录" }).click();
   await expect(page.getByRole("row").filter({ hasText: "65.5 kg" })).toBeVisible();
 
-  const editButton = page.getByRole("button", { name: "编辑", exact: true });
+  const editButton = page.getByRole("button", { name: /编辑.*健身记录/ });
   await editButton.scrollIntoViewIfNeeded();
   await expect(editButton).toBeInViewport();
   await editButton.click();
@@ -303,7 +303,10 @@ test("待买物品创建后可编辑数量与预算", async ({ page }) => {
   await expect(page.getByRole("table")).toBeVisible();
   await expect(page.getByRole("columnheader", { name: "操作" })).toBeVisible();
 
-  const shoppingEditButton = page.getByRole("button", { name: "编辑", exact: true });
+  const shoppingEditButton = page.getByRole("button", {
+    name: "编辑“旅行收纳盒”",
+    exact: true,
+  });
   await shoppingEditButton.scrollIntoViewIfNeeded();
   await expect(shoppingEditButton).toBeInViewport();
   await shoppingEditButton.focus();
@@ -362,9 +365,12 @@ test("日程编辑时回填全部可编辑字段", async ({ page }) => {
   await page.goto("/schedule");
   await expect(page.getByRole("table")).toBeVisible();
   await expect(page.getByRole("columnheader", { name: "操作" })).toBeVisible();
-  await page.getByRole("button", { name: "编辑", exact: true }).click();
+  await page.getByRole("button", { name: "编辑“验证编辑回填”", exact: true }).click();
 
-  await expect(page.getByLabel("事项")).toHaveValue("验证编辑回填");
+  await expect(page.getByLabel("事项", { exact: true })).toHaveValue("验证编辑回填");
+  await expect(page.getByRole("note", { name: "提醒能力说明" })).toContainText(
+    "仅在工作台打开时显示站内提醒",
+  );
   await expect(page.getByRole("combobox", { name: "日期" })).toContainText("2026-09-03");
   await expect(page.getByRole("combobox", { name: "时间" })).toContainText("20:00");
   await expect(page.getByRole("combobox", { name: "清单" })).toContainText("工作");
@@ -407,11 +413,11 @@ test("书影音编辑时回填全部可编辑字段", async ({ page }) => {
   });
 
   await page.goto("/media");
-  await page.getByRole("button", { name: "编辑", exact: true }).click();
+  await page.getByRole("button", { name: "编辑“犬夜叉”", exact: true }).click();
 
   await expect(page.getByLabel("作品名称")).toHaveValue("犬夜叉");
   await expect(page.getByRole("combobox", { name: "类型" })).toContainText("动漫");
-  await expect(page.getByRole("combobox", { name: "状态" })).toContainText("进行中");
+  await expect(page.getByRole("combobox", { name: "状态", exact: true })).toContainText("进行中");
   await expect(page.getByRole("combobox", { name: "评分" })).toContainText("5 分");
   await expect(page.getByLabel("一句话短评")).toHaveValue("灵魂同源，不同的命运");
 });

@@ -139,7 +139,7 @@ test("首页四个快捷入口在抽屉中保存并局部刷新总览", async ({
   await expect(page.getByText("首页午餐", { exact: true })).toBeVisible();
 
   await page.getByRole("button", { name: "排日程", exact: true }).click();
-  await page.getByLabel("事项").fill("首页安排复盘");
+  await page.getByLabel("事项", { exact: true }).fill("首页安排复盘");
   await page
     .getByRole("dialog", { name: "加入日程" })
     .getByRole("button", { name: "加入日程", exact: true })
