@@ -2,6 +2,7 @@ import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@ta
 import type { PropsWithChildren } from "react";
 import { useState } from "react";
 import { AccessibleAnnouncer } from "../components/AccessibleAnnouncer";
+import { ToastViewport } from "../components/ToastViewport";
 import { showErrorToast } from "../data-provider/error-toast";
 
 export function AppProviders({ children }: PropsWithChildren) {
@@ -26,6 +27,7 @@ export function AppProviders({ children }: PropsWithChildren) {
   return (
     <QueryClientProvider client={queryClient}>
       <AccessibleAnnouncer />
+      <ToastViewport />
       {children}
     </QueryClientProvider>
   );

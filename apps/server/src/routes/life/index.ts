@@ -77,6 +77,7 @@ const timelineQuerySchema = z.object({
   from: localDateSchema.optional(),
   to: localDateSchema.optional(),
   source: timelineSourceSchema.optional(),
+  keyword: z.string().trim().min(1).max(50).optional(),
   cursor: z
     .string()
     .regex(/^[A-Za-z0-9_-]+$/)

@@ -1,25 +1,10 @@
-import type { RestorePreflightResponse, TrashSource } from "@daily-life/shared";
+import { type RestorePreflightResponse, trashSourceLabels } from "@daily-life/shared";
 import { Button, Card, Modal, Title } from "animal-island-ui";
 import { useRef, useState } from "react";
 import { useBackupMutations } from "@/data-provider/backup";
 import { useTrash, useTrashMutations } from "@/data-provider/life";
+import { formatIsoDateTime } from "@/presentation/domain-formatters";
 import { notify } from "@/services/notification.service";
-
-const sourceLabels: Record<TrashSource, string> = {
-  finance: "财务",
-  habit: "习惯",
-  fitness: "健身",
-  schedule: "日程",
-  shopping: "待买",
-  media: "书影音",
-};
-
-const deletedAtFormatter = new Intl.DateTimeFormat("zh-CN", {
-  month: "long",
-  day: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-});
 
 const backupCountLabels: Record<string, string> = {
   settings: "偏好设置",
@@ -122,29 +107,36 @@ export function Component() {
     <section className="grid gap-7">
       <header className="[&_h1]:my-2 [&_h1]:font-sans [&_h1]:text-[clamp(30px,4vw,46px)] [&_h1]:leading-[1.18] [&_h1]:text-[var(--animal-text-color)] [&>p]:m-0 [&>p]:max-w-[680px] [&>p]:text-island-muted">
         <p className="m-0 text-xs font-extrabold uppercase tracking-[0.15em] text-[var(--animal-primary-color)]">
-          设置与数据安全
+          数据安全
         </p>
-        <h1>最近删除</h1>
+        <h1>回收站</h1>
         <p>删除只会隐藏记录，不会立刻清空数据；恢复时会检查是否存在其他页面的更新。</p>
       </header>
       <Title color="app-teal">备份与恢复</Title>
-      <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-2">
-        <Card className="px-7 py-[26px] [&_.eyebrow]:mt-0 [&_h2]:mt-0 [&>p:not(.eyebrow)]:leading-[1.7] [&>p:not(.eyebrow)]:text-[var(--animal-text-color-secondary)]">
+      <div className="grid grid-cols-1 items-stretch gap-[18px] sm:grid-cols-2">
+        <Card className="flex h-full flex-col px-7 py-[26px] [&_.eyebrow]:mt-0 [&_h2]:mt-0 [&>p:not(.eyebrow)]:leading-[1.7] [&>p:not(.eyebrow)]:text-[var(--animal-text-color-secondary)]">
           <p className="m-0 text-xs font-extrabold uppercase tracking-[0.15em] text-[var(--animal-primary-color)]">
             导出
           </p>
           <h2>下载业务全量 Excel</h2>
-          <p>六类业务各有可读工作表，并保留恢复校验信息；不包含密码、Session 或 AI 密钥。</p>
-          <Button
-            type="primary"
-            loading={backupMutations.exportBackup.isPending}
-            onClick={exportBackup}
-          >
-            生成并下载备份
-          </Button>
+          <p>
+            六类业务各有可读工作表，并保留恢复校验信息；不包含密码、Session、AI 密钥或书影音封面。
+          </p>
+          <p className="rounded-[var(--animal-border-radius-sm)] bg-[var(--animal-warning-surface)] p-3 text-sm text-[var(--animal-warning-color-active)]">
+            注意：使用这份 Excel 整体恢复时，当前所有书影音封面都会被移除。
+          </p>
+          <div className="mt-auto pt-5">
+            <Button
+              type="primary"
+              loading={backupMutations.exportBackup.isPending}
+              onClick={exportBackup}
+            >
+              生成并下载备份
+            </Button>
+          </div>
         </Card>
         <Card
-          className="px-7 py-[26px] [&_.eyebrow]:mt-0 [&_h2]:mt-0 [&>p:not(.eyebrow)]:leading-[1.7] [&>p:not(.eyebrow)]:text-[var(--animal-text-color-secondary)]"
+          className="flex h-full flex-col px-7 py-[26px] [&_.eyebrow]:mt-0 [&_h2]:mt-0 [&>p:not(.eyebrow)]:leading-[1.7] [&>p:not(.eyebrow)]:text-[var(--animal-text-color-secondary)]"
           type="dashed"
         >
           <p className="m-0 text-xs font-extrabold uppercase tracking-[0.15em] text-[var(--animal-primary-color)]">
@@ -155,6 +147,8 @@ export function Component() {
           <input
             ref={fileInput}
             type="file"
+            name="backupWorkbook"
+            aria-label="Excel 备份文件"
             accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             hidden
             onChange={(event) => {
@@ -163,12 +157,14 @@ export function Component() {
               event.target.value = "";
             }}
           />
-          <Button
-            loading={backupMutations.preflight.isPending}
-            onClick={() => fileInput.current?.click()}
-          >
-            选择 Excel 备份
-          </Button>
+          <div className="mt-auto pt-5">
+            <Button
+              loading={backupMutations.preflight.isPending}
+              onClick={() => fileInput.current?.click()}
+            >
+              选择 Excel 备份
+            </Button>
+          </div>
         </Card>
       </div>
 
@@ -184,7 +180,7 @@ export function Component() {
             <span>{preflight.totalEntities} 项</span>
           </div>
           <p>
-            导出时间：{deletedAtFormatter.format(new Date(preflight.exportedAt))} · 校验码：
+            导出时间：{formatIsoDateTime(preflight.exportedAt)} · 校验码：
             {preflight.checksumSha256.slice(0, 12)}…
           </p>
           <div className="my-5 grid grid-cols-1 gap-2.5 sm:grid-cols-4 [&>div]:rounded-[var(--animal-border-radius-sm)] [&>div]:border-[length:var(--animal-border-width)] [&>div]:border-[var(--animal-border-color-light)] [&>div]:bg-[var(--animal-bg-color)] [&>div]:p-3 [&_span]:block [&_span]:text-[length:var(--animal-font-size-sm)] [&_span]:text-[var(--animal-text-color-secondary)] [&_strong]:mt-[5px] [&_strong]:block [&_strong]:text-[length:var(--animal-font-size-lg)] [&_strong]:text-[var(--animal-primary-color-active)]">
@@ -200,6 +196,9 @@ export function Component() {
               <li key={warning}>{warning}</li>
             ))}
           </ul>
+          <p className="rounded-[var(--animal-border-radius-sm)] bg-[var(--animal-error-surface)] p-3 font-extrabold text-[var(--animal-error-color-active)]">
+            当前有 {preflight.affectedMediaCoverCount} 张书影音封面会在整体恢复时被移除。
+          </p>
           <Button type="primary" danger onClick={() => setRestoreOpen(true)}>
             准备整体恢复
           </Button>
@@ -210,28 +209,29 @@ export function Component() {
       <Card className="w-full p-[22px] sm:p-7">
         {trash.isPending ? (
           <p className="grid min-h-[140px] w-full place-items-center px-6 py-[42px] text-center text-[var(--animal-text-color-secondary)]">
-            正在查看最近删除…
+            正在查看回收站…
           </p>
         ) : null}
         {trash.data?.items.length === 0 ? (
           <p className="grid min-h-[140px] w-full place-items-center px-6 py-[42px] text-center text-[var(--animal-text-color-secondary)]">
-            这里是空的，最近没有删除记录。
+            回收站是空的。
           </p>
         ) : null}
         <div className="grid">
           {trash.data?.items.map((item) => (
             <article
-              className="grid grid-cols-1 items-start gap-3.5 border-b-[var(--animal-border-width)] border-dashed border-[var(--animal-border-color-light)] px-1 py-[18px] [contain-intrinsic-size:88px] [content-visibility:auto] last:border-b-0 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-6"
+              className="grid grid-cols-1 items-start gap-3.5 border-b-2 border-dashed border-[var(--animal-border-color)] px-1 py-[18px] [contain-intrinsic-size:88px] [content-visibility:auto] last:border-b-0 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-6"
               key={`${item.source}:${item.id}`}
             >
               <div>
-                <span>{sourceLabels[item.source]}</span>
+                <span>{trashSourceLabels[item.source]}</span>
                 <strong>{item.label}</strong>
-                <p>删除于 {deletedAtFormatter.format(new Date(item.deletedAt))}</p>
+                <p>删除于 {formatIsoDateTime(item.deletedAt)}</p>
               </div>
               <Button
                 type="primary"
                 loading={mutations.restore.isPending}
+                aria-label={`恢复“${item.label}”`}
                 onClick={() => restore(item)}
               >
                 恢复记录
@@ -265,7 +265,16 @@ export function Component() {
           </>
         }
       >
-        当前业务数据会被这份备份整体替换。服务端会先自动保存一份恢复前快照；密码和当前登录状态不会改变。
+        <div className="grid gap-3">
+          <p className="m-0">
+            当前业务数据会被这份备份整体替换。服务端会先自动保存一份恢复前快照；密码和当前登录状态不会改变。
+          </p>
+          <p className="m-0 rounded-[var(--animal-border-radius-sm)] bg-[var(--animal-error-surface)] p-3 font-extrabold text-[var(--animal-error-color-active)]">
+            书影音封面不在 Excel 备份中；确认恢复后，当前
+            {preflight?.affectedMediaCoverCount ?? 0}
+            张封面都会被移除且无法从这份备份找回。
+          </p>
+        </div>
       </Modal>
     </section>
   );

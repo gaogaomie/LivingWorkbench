@@ -398,6 +398,14 @@ TanStack Query 失效相关缓存
 Notification 成功反馈
 ```
 
+### 7.5 领域文案与展示格式边界
+
+- 接口、数据库和 URL 查询参数使用稳定的英文内部键；内部键不得直接作为页面文案输出。
+- 可跨端复用的业务标签字典集中放在 `packages/shared/src/domain-labels.ts`，财务、习惯、日程、待买、书影音、时光档案和回收站使用同一套中文名称。
+- 金额、日期、月份、日期时间、体重和计数只在 Web 展示边界格式化，统一通过 `apps/web/src/presentation/domain-formatters.ts` 输出；服务端仍按整数分、整数克、`LocalDate`、`YearMonth` 和 ISO 时间戳传输。
+- 服务端生成可直接展示的跨模块摘要时，必须先将分类键转换为共享中文标签；未知或历史键使用明确的中文兜底文案，不泄漏内部枚举。
+- 筛选、表单提交和深链接始终保留原始内部键，展示文案变化不得破坏已保存数据或 URL 可恢复性。
+
 ## 8. 领域模型与数据库
 
 ### 8.1 通用类型
@@ -604,7 +612,7 @@ interface DraftRecord {
 
 interface AiProviderConfig {
   id: string;
-  provider: 'openai-compatible';
+  provider: 'deepseek';
   label: string;
   baseUrl: string;
   model: string;
@@ -833,8 +841,8 @@ TanStack Query 约定：
 
 字段：
 
-- 服务类型：OpenAI Compatible。
-- API Base URL：从 Server 预设供应商中选择，V1 不开放任意脚本或代理地址。
+- 服务类型：DeepSeek Responses API。
+- API Base URL：由 Server 固定为 DeepSeek 官方地址，V1 不开放任意脚本、代理或境外备用服务。
 - API Key：密码输入框，提交后只由 Server 接收，后续只返回掩码提示。
 - 模型名称：从连接测试结果选择或手动填写。
 - “启用该配置”：关闭时 Server 不允许发起模型请求。
@@ -1137,6 +1145,9 @@ V1 只支持整体替换恢复，不做复杂合并。恢复失败立即切回�
 - 各领域实体映射为统一 `TimelineItem`。
 - 映射器包含来源、摘要、日期、排序时间和详情路由。
 - 不复制备注全文；列表先展示摘要，进入来源页看详情。
+- 服务端在游标分页前统一执行日期、来源和关键词过滤，并返回完整筛选区间的记录数、活跃天数和来源分布；前端不得只过滤已加载页。
+- 页面默认按当月回顾，支持按月、按年、自定义日期范围导航；筛选条件写入 URL，可刷新恢复并复制为私有回顾链接。
+- 日期分组使用可键盘操作的折叠面板，默认展开最新一天；回顾链接不绕过登录态，不生成公开访问副本。
 
 ## 16. React 性能策略
 

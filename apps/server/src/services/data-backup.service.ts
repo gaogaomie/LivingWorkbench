@@ -22,8 +22,8 @@ import {
   todoLists,
   todos,
 } from "../db/schema";
+import { APP_VERSION } from "../version";
 
-const APP_VERSION = "0.1.0";
 const BACKUP_KEYS = [
   "financeEntries",
   "monthlyBudgets",
@@ -151,7 +151,7 @@ export class DataBackupService {
     return { manifest, data, checksumSha256: checksum(manifest, data) };
   }
 
-  preflight(backup: BackupDocument): RestorePreflightResponse {
+  preflight(backup: BackupDocument, affectedMediaCoverCount = 0): RestorePreflightResponse {
     const actualChecksum = checksum(backup.manifest, backup.data);
     if (actualChecksum !== backup.checksumSha256) {
       throw new BackupValidationError("备份校验失败，文件内容可能已损坏或被修改。");
@@ -202,7 +202,12 @@ export class DataBackupService {
       exportedAt: backup.manifest.exportedAt,
       entityCounts: counts,
       totalEntities: Object.values(counts).reduce((total, count) => total + count, 0),
-      warnings: ["恢复会整体替换当前业务数据。", "密码、登录状态、AI 密钥和封面文件不在此备份中。"],
+      affectedMediaCoverCount,
+      warnings: [
+        "恢复会整体替换当前业务数据。",
+        "密码、登录状态和 AI 密钥不在此备份中。",
+        "封面文件不在此备份中；整体恢复会移除当前所有书影音封面。",
+      ],
     };
   }
 

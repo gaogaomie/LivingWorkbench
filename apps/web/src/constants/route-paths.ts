@@ -31,5 +31,5 @@ export const primaryNavigation = [
 
 export const dataNavigation = [
   { label: "时光档案", shortLabel: "档案", to: routePaths.timeline, icon: "icon-design" },
-  { label: "设置", shortLabel: "设置", to: routePaths.settings, icon: "icon-variant" },
+  { label: "回收站", shortLabel: "回收", to: routePaths.settings, icon: "icon-variant" },
 ] as const satisfies ReadonlyArray<NavigationItem>;

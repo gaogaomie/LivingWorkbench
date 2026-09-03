@@ -5,6 +5,22 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            {
+              name: "common",
+              test: (moduleId) => !/[\\/]node_modules[\\/](echarts|zrender)[\\/]/.test(moduleId),
+              minShareCount: 2,
+              minSize: 10_000,
+            },
+          ],
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),

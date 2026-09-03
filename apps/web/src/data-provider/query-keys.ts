@@ -8,11 +8,14 @@ export const queryKeys = {
   dueReminders: ["schedule", "reminders", "due"] as const,
   shopping: (month: string) => ["shopping", month] as const,
   media: (year: string) => ["media", year] as const,
+  timelineRoot: ["timeline"] as const,
   timeline: (filters: {
     from?: string | undefined;
     to?: string | undefined;
     source?: string | undefined;
+    keyword?: string | undefined;
   }) => ["timeline", filters] as const,
+  overviewRoot: ["overview"] as const,
   overview: (date: string) => ["overview", { date }] as const,
   trash: ["trash"] as const,
 };

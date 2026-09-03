@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "bun build ./src/server.ts --outdir ./dist --target node --format esm --sourcemap=external --external better-sqlite3 --external argon2 --external sharp",
+    "build": "bun build ./src/server.ts --outdir ./dist --target node --format esm --sourcemap=external --external better-sqlite3 --external argon2 --external sharp && bun run ../../scripts/copy-server-migrations.ts",
     "start": "node --env-file-if-exists=../../.env dist/server.js",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",

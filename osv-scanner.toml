@@ -1,0 +1,9 @@
+[[IgnoredVulns]]
+id = "GHSA-67mh-4wv8-2f99"
+ignoreUntil = 2026-12-02
+reason = "esbuild 0.18.20 is only carried by the Drizzle development CLI; this project does not run esbuild's vulnerable serve API. Recheck when drizzle-kit updates its deprecated loader dependency."
+
+[[IgnoredVulns]]
+id = "GHSA-w5hq-g745-h8pq"
+ignoreUntil = 2026-12-02
+reason = "ExcelJS 4.4.0 calls uuid v4, while this advisory only affects v3, v5, and v6 with caller-provided output buffers. Recheck when ExcelJS upgrades uuid."

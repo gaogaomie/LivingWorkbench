@@ -18,7 +18,7 @@ export function AppLayout() {
         <div className="sticky top-0 z-10 flex min-h-15 items-center border-b border-island-border bg-island-surface px-4 md:hidden">
           <MobileNavigation />
         </div>
-        <div className="mx-auto w-full max-w-[1480px] px-4 py-8 sm:px-6 md:px-8 md:py-10">
+        <div className="mx-auto w-full max-w-[1600px] px-4 py-8 sm:px-6 md:px-8 md:py-10 2xl:px-10">
           <Outlet />
         </div>
       </main>

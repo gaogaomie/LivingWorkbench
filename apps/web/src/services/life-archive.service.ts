@@ -13,6 +13,7 @@ export const lifeArchiveService = {
       from?: string | undefined;
       to?: string | undefined;
       source?: TimelineSource | undefined;
+      keyword?: string | undefined;
     },
     cursor: string,
   ) =>

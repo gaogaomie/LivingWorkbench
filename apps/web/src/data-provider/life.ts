@@ -100,10 +100,11 @@ export function useFitnessMutations(today: string) {
   };
 }
 
-export function useSchedule(today: string) {
+export function useSchedule(today: string, enabled = true) {
   return useQuery({
     queryKey: queryKeys.schedule(today),
     queryFn: () => scheduleService.get(today),
+    enabled,
   });
 }
 
@@ -117,11 +118,12 @@ export function useDueReminders() {
     queryKey: queryKeys.dueReminders,
     queryFn: () => {
       const now = new Date();
-      const from = formatLocalMinute(new Date(now.getTime() - 2 * 60_000));
+      const from = formatLocalMinute(new Date(now.getTime() - 24 * 60 * 60_000));
       const to = formatLocalMinute(now);
       return scheduleService.getDueReminders(from, to);
     },
     refetchInterval: 60_000,
+    refetchIntervalInBackground: true,
     staleTime: 0,
   });
 }
@@ -132,6 +134,7 @@ export function useScheduleMutations(today: string) {
   const refresh = () =>
     Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.schedule(today) }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.dueReminders }),
       queryClient.invalidateQueries({ queryKey: ["timeline"] }),
       queryClient.invalidateQueries({ queryKey: ["overview"] }),
     ]);
@@ -252,6 +255,7 @@ export function useTimeline(filters: {
   from?: string | undefined;
   to?: string | undefined;
   source?: TimelineSource | undefined;
+  keyword?: string | undefined;
 }) {
   return useInfiniteQuery({
     queryKey: queryKeys.timeline(filters),

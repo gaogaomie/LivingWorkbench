@@ -60,7 +60,7 @@ export const registerDataRoutes: FastifyPluginAsync<DataRoutesOptions> = async (
     try {
       return createApiSuccess(
         restorePreflightResponseSchema.parse(
-          await backupService.preflight(body.data.workbookBase64),
+          await backupService.preflight(session.user.id, body.data.workbookBase64),
         ),
       );
     } catch (error) {

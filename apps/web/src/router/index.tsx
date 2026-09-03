@@ -4,7 +4,7 @@ import { ErrorPage } from "../pages/error/ErrorPage";
 import { OverviewPage } from "../pages/overview";
 import { AuthGuard } from "./AuthGuard";
 
-const routeFallback = <div aria-live="polite">正在整理小岛，请稍候…</div>;
+const routeFallback = <div aria-live="polite">页面加载中，请稍候…</div>;
 
 export const router = createBrowserRouter([
   {

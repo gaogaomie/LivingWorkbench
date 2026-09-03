@@ -1,14 +1,19 @@
-import { Notification } from "animal-island-ui";
-import { ANNOUNCE_EVENT } from "./announcement-events";
-
-type NotificationLevel = "success" | "error" | "warning" | "info";
+import {
+  ANNOUNCE_EVENT,
+  type NotificationEventDetail,
+  type NotificationLevel,
+} from "./announcement-events";
 
 function show(level: NotificationLevel, message: string) {
-  Notification[level](message);
   if (typeof window !== "undefined") {
+    const detail: NotificationEventDetail = {
+      message,
+      urgent: level === "error" || level === "warning",
+      level,
+    };
     window.dispatchEvent(
       new CustomEvent(ANNOUNCE_EVENT, {
-        detail: { message, urgent: level === "error" || level === "warning" },
+        detail,
       }),
     );
   }

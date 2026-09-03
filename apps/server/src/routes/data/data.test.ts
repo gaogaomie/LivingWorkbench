@@ -101,7 +101,11 @@ describe("data backup routes", () => {
     const preflightData = preflight.json().data;
     expect(preflightData).toMatchObject({
       entityCounts: { financeEntries: 1 },
+      affectedMediaCoverCount: 0,
     });
+    expect(preflightData.warnings).toContain(
+      "封面文件不在此备份中；整体恢复会移除当前所有书影音封面。",
+    );
     expect(preflightData.checksumSha256).toMatch(/^[a-f0-9]{64}$/);
 
     const systemSheet = workbook.getWorksheet("_RIJI_BACKUP");

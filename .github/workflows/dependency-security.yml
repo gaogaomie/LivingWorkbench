@@ -1,0 +1,44 @@
+name: Dependency Security
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 2 * * 1"
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths:
+      - "**/package.json"
+      - "bun.lock"
+      - "osv-scanner.toml"
+      - ".github/workflows/dependency-security.yml"
+  pull_request:
+    paths:
+      - "**/package.json"
+      - "bun.lock"
+      - "osv-scanner.toml"
+      - ".github/workflows/dependency-security.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependency-security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  osv-scan:
+    name: OSV dependency scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan locked dependencies against the offline OSV database
+        run: >-
+          docker run --rm
+          --volume "${{ github.workspace }}:/src:ro"
+          ghcr.io/google/osv-scanner:v2.5.0@sha256:ed5c1cda47b439a9bf0b010d2f0920b70d6cf2e003fe1774c0e4c405e5747213
+          scan source
+          --offline
+          --download-offline-databases
+          --lockfile=/src/bun.lock

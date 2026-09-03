@@ -3,6 +3,7 @@ import type {
   FinanceEntry,
   SessionResponse,
   SetMonthlyBudget,
+  UpdateFinanceEntry,
 } from "@daily-life/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { financeService } from "../services/finance.service";
@@ -28,8 +29,25 @@ export function useCreateFinanceEntry(month: string) {
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.financeMonth(month) }),
-        queryClient.invalidateQueries({ queryKey: ["overview"] }),
-        queryClient.invalidateQueries({ queryKey: ["timeline"] }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.overviewRoot }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.timelineRoot }),
+      ]);
+    },
+  });
+}
+
+export function useUpdateFinanceEntry(month: string) {
+  const queryClient = useQueryClient();
+  const csrfToken = useCsrfToken();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: UpdateFinanceEntry }) =>
+      financeService.updateEntry(id, input, csrfToken),
+    onSuccess: async (entry) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.financeMonth(month) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.financeMonth(entry.month) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.overviewRoot }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.timelineRoot }),
       ]);
     },
   });

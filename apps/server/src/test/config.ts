@@ -9,6 +9,8 @@ export const testServerConfig: ServerConfig = {
   uploadDirectory: null,
   sessionSecret: "test-session-secret-that-is-long-enough",
   sessionTtlDays: 30,
+  deepSeekApiKey: null,
+  deepSeekModel: "deepseek-test-model",
   nodeEnv: "test",
   cookieSecure: false,
 };

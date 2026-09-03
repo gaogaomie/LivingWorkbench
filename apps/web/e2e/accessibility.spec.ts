@@ -10,8 +10,8 @@ test("登录表单具有可访问名称", async ({ page }) => {
   );
   await page.goto("/login");
 
-  await expect(page.getByRole("heading", { name: "岛上的日常，还好好收着" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "回到我的日常集" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "欢迎回来" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "回到岛上" })).toBeVisible();
   await expect(page.getByLabel("用户名")).toBeVisible();
   await expect(page.getByLabel("密码")).toHaveAttribute("type", "password");
 });
@@ -80,13 +80,28 @@ test("移动导航支持展开与 Escape 关闭", async ({ page }, testInfo) => 
       body: JSON.stringify({
         code: 200,
         message: "success",
-        data: { items: [], nextCursor: null },
+        data: {
+          items: [],
+          nextCursor: null,
+          summary: {
+            totalRecords: 0,
+            activeDays: 0,
+            sourceCounts: {
+              finance: 0,
+              habit: 0,
+              fitness: 0,
+              schedule: 0,
+              shopping: 0,
+              media: 0,
+            },
+          },
+        },
       }),
     }),
   );
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { name: "欢迎回岛，今天也慢慢来" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "今天，慢慢来" })).toBeVisible();
   const menu = page.getByRole("button", { name: "菜单" });
   await menu.click();
   await expect(page.getByRole("navigation", { name: "移动端导航" })).toBeVisible();

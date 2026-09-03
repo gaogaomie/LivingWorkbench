@@ -34,6 +34,14 @@ export class MediaCoverService {
     private readonly uploadDirectory: string | null,
   ) {}
 
+  countForUser(userId: string): number {
+    return this.db
+      .select({ id: assets.id })
+      .from(assets)
+      .where(and(eq(assets.userId, userId), eq(assets.ownerType, "media")))
+      .all().length;
+  }
+
   async upload(
     userId: string,
     mediaItemId: string,

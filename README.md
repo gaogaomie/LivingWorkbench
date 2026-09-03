@@ -2,6 +2,12 @@
 
 个人生活记录工作台的一期 Web 工程。产品以“今日总览”和“时光档案”为双聚合入口，覆盖财务、习惯、健身、日程、待买和书影音六类记录。
 
+## 平台预览
+
+“日常集”把分散的生活记录收进同一个工作台：在今日总览快速查看支出、习惯、待办和最近动态，也可以分别管理记账理财、习惯健康、减脂健身、日程统筹、待买清单与书影音记录，所有内容会统一沉淀到时光档案。
+
+![日常集今日总览，展示生活模块入口、快捷记录、生活指数和最近记录](./docs/images/platform-overview.jpg)
+
 ## 工程边界
 
 ```text
@@ -29,6 +35,16 @@ bun run dev
 
 默认地址：Web `http://localhost:5173`，API `http://localhost:8787`。Vite 会把 `/api` 请求代理给本地 API。
 
+也可以打开两个终端，分别启动前后端：
+
+```bash
+# 终端 1：启动后端 API
+bun run dev:server
+
+# 终端 2：启动前端 Web
+bun run dev:web
+```
+
 `admin:init` 只允许在空数据库中执行一次。密码使用 Argon2id 保存；命令不会把明文写入数据库或配置文件。正式部署前请替换 `.env` 中的 `SESSION_SECRET`，并确保数据目录位于持久化磁盘。
 
 如果首次初始化时填错了凭据，可以在本机重置唯一管理员。重置会立即撤销已有登录会话：
@@ -40,8 +56,6 @@ ADMIN_USERNAME=新的用户名 ADMIN_PASSWORD='新的强密码' bun run --cwd ap
 常用命令：
 
 ```bash
-bun run dev:web
-bun run dev:server
 bun run lint
 bun run typecheck
 bun run test

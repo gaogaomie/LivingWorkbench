@@ -324,9 +324,75 @@ describe("life module routes", () => {
     });
     expect(response.statusCode).toBe(200);
     expect(response.json().data.nextCursor).toBeNull();
+    expect(response.json().data.summary).toMatchObject({
+      totalRecords: 6,
+      activeDays: 1,
+      sourceCounts: {
+        finance: 0,
+        habit: 1,
+        fitness: 1,
+        schedule: 2,
+        shopping: 1,
+        media: 1,
+      },
+    });
     expect(
       new Set(response.json().data.items.map((item: { source: string }) => item.source)),
     ).toEqual(new Set(["habit", "fitness", "schedule", "shopping", "media"]));
+  });
+
+  it("searches all matching timeline records before pagination", async () => {
+    const response = await app.inject({
+      method: "GET",
+      url: `/api/v1/timeline?from=${date}&to=${date}&keyword=${encodeURIComponent("喝水")}&limit=1`,
+      headers: { cookie },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json().data).toMatchObject({
+      items: [{ source: "habit", title: "喝水" }],
+      nextCursor: null,
+      summary: { totalRecords: 1, activeDays: 1 },
+    });
+  });
+
+  it("uses user-facing finance category labels in the timeline", async () => {
+    const created = await app.inject({
+      method: "POST",
+      url: "/api/v1/finance/entries",
+      headers: headers(),
+      payload: {
+        id: "10000000-0000-4000-8000-000000000099",
+        type: "expense",
+        amountFen: 2_680,
+        categoryId: "food",
+        date,
+        note: "晚餐",
+      },
+    });
+    expect(created.statusCode).toBe(201);
+
+    const response = await app.inject({
+      method: "GET",
+      url: `/api/v1/timeline?from=${date}&to=${date}&keyword=${encodeURIComponent("餐饮")}`,
+      headers: { cookie },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json().data.items).toEqual([
+      expect.objectContaining({ source: "finance", summary: "餐饮 · ¥26.80 · 晚餐" }),
+    ]);
+  });
+
+  it("rejects an empty timeline keyword after trimming", async () => {
+    const response = await app.inject({
+      method: "GET",
+      url: "/api/v1/timeline?keyword=%20%20",
+      headers: { cookie },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toMatchObject({ code: "VALIDATION_ERROR" });
   });
 
   it("paginates the timeline with an opaque cursor and no duplicate records", async () => {

@@ -6,6 +6,7 @@ import {
 } from "@daily-life/shared";
 import type { FastifyPluginAsync } from "fastify";
 import type { DatabaseConnection } from "../../db/client";
+import { APP_VERSION } from "../../version";
 
 interface HealthRoutesOptions {
   database: DatabaseConnection;
@@ -20,7 +21,7 @@ export const registerHealthRoutes: FastifyPluginAsync<HealthRoutesOptions> = asy
       healthResponseSchema.parse({
         status: "ok",
         service: "daily-life-server",
-        version: "0.1.0",
+        version: APP_VERSION,
         checkedAt: new Date().toISOString(),
       }),
     ),
@@ -33,7 +34,7 @@ export const registerHealthRoutes: FastifyPluginAsync<HealthRoutesOptions> = asy
         healthResponseSchema.parse({
           status: "ok",
           service: "daily-life-server",
-          version: "0.1.0",
+          version: APP_VERSION,
           checkedAt: new Date().toISOString(),
         }),
       );
@@ -45,7 +46,7 @@ export const registerHealthRoutes: FastifyPluginAsync<HealthRoutesOptions> = asy
         healthResponseSchema.parse({
           status: "unavailable",
           service: "daily-life-server",
-          version: "0.1.0",
+          version: APP_VERSION,
           checkedAt: new Date().toISOString(),
         }),
       );

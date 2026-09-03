@@ -28,7 +28,7 @@ export function DeleteRecordButton({
       {
         onSuccess: () => {
           setOpen(false);
-          notify.success("已移到最近删除，可在设置中恢复。");
+          notify.success("已移到回收站，可随时恢复。");
         },
       },
     );
@@ -40,13 +40,14 @@ export function DeleteRecordButton({
         type={appearance === "button" ? "dashed" : "text"}
         danger
         size="small"
+        aria-label={`删除“${label}”`}
         onClick={() => setOpen(true)}
       >
         删除
       </Button>
       <Modal
         open={open}
-        title="移到最近删除？"
+        title="移到回收站？"
         typewriter={false}
         maskClosable={!remove.isPending}
         onClose={() => !remove.isPending && setOpen(false)}
@@ -61,7 +62,7 @@ export function DeleteRecordButton({
           </>
         }
       >
-        “{label}”会从当前模块和时光档案中隐藏，但仍可从设置页恢复。
+        “{label}”会从当前模块和时光档案中隐藏，但仍可从回收站恢复。
       </Modal>
     </>
   );

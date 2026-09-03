@@ -71,16 +71,12 @@ export function Component() {
               draggable="false"
             />
             <Title size="large" color="app-yellow" className="relative z-[2] mb-[-12px]">
-              欢迎回到日常集
+              岛民的日常集
             </Title>
             <Card className="[--login-input-surface:#fffbe7] w-full px-6 pb-7 pt-10 sm:px-[clamp(28px,5vw,48px)] sm:pb-[34px] sm:pt-[clamp(42px,5vw,54px)] [&_.animal-form-item:last-child]:mb-0 [&_.animal-form-item:last-child]:mt-4">
               <div className="mb-7 text-center [&_h1]:mb-2 [&_h1]:mt-0 [&_h1]:text-[clamp(25px,3vw,34px)] [&_h1]:leading-[1.3] [&_h1]:text-[var(--animal-text-color)] [&_p:last-child]:m-0 [&_p:last-child]:font-semibold [&_p:last-child]:text-[var(--animal-text-color-secondary)]">
-                <p className="mb-2 mt-0 text-[length:var(--animal-font-size-sm)] font-black tracking-[0.14em] text-[var(--animal-primary-color-active)]">
-                  你的小日子生活岛
-                </p>
-                <h1 id="login-title">岛上的日常，还好好收着</h1>
                 <Typewriter speed={54}>
-                  <p>账目、习惯、安排和喜欢，都在这里慢慢长成生活。</p>
+                  <h1 id="login-title">欢迎回来</h1>
                 </Typewriter>
               </div>
 
@@ -115,6 +111,7 @@ export function Component() {
 
                 <FormItem>
                   <Button
+                    className="mt-5"
                     type="primary"
                     size="large"
                     htmlType="submit"
@@ -122,7 +119,7 @@ export function Component() {
                     loading={login.isPending}
                     icon={<Icon name="icon-helicopter" size={22} />}
                   >
-                    {login.isPending ? "正在回岛" : "回到我的日常集"}
+                    {login.isPending ? "正在登录" : "回到岛上"}
                   </Button>
                 </FormItem>
               </Form>

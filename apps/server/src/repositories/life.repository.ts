@@ -15,6 +15,7 @@ import type {
   ScheduleResponse,
   ShoppingResponse,
   TimelineItem,
+  TimelineResponse,
   TimelineSource,
   TodoStatus,
   UpdateFitnessLog,
@@ -22,6 +23,7 @@ import type {
   UpdateShoppingItem,
   UpdateTodo,
 } from "@daily-life/shared";
+import { financeCategoryLabels, financeCategorySchema } from "@daily-life/shared";
 import { and, asc, desc, eq, gte, isNotNull, isNull, lte, ne } from "drizzle-orm";
 import type { AppDatabase } from "../db/client";
 import {
@@ -73,6 +75,11 @@ function reminderDateTime(date: string, time: string, minutesBefore: number): st
 
 function inRange(date: string, from?: string, to?: string): boolean {
   return (!from || date >= from) && (!to || date <= to);
+}
+
+function financeCategoryLabel(value: string): string {
+  const category = financeCategorySchema.safeParse(value);
+  return category.success ? financeCategoryLabels[category.data] : financeCategoryLabels.other;
 }
 
 function calculateStreak(
@@ -844,15 +851,18 @@ export class TimelineRepository {
       from?: string | undefined;
       to?: string | undefined;
       source?: TimelineSource | undefined;
+      keyword?: string | undefined;
       cursor?: string | undefined;
       limit: number;
     },
-  ): { items: TimelineItem[]; nextCursor: string | null } {
+  ): TimelineResponse {
     const items: TimelineItem[] = [];
+    const keyword = filters.keyword?.toLocaleLowerCase("zh-CN");
     const add = (item: TimelineItem) => {
       if (
         inRange(item.date, filters.from, filters.to) &&
-        (!filters.source || item.source === filters.source)
+        (!filters.source || item.source === filters.source) &&
+        (!keyword || `${item.title} ${item.summary}`.toLocaleLowerCase("zh-CN").includes(keyword))
       ) {
         items.push(item);
       }
@@ -868,7 +878,7 @@ export class TimelineRepository {
         source: "finance",
         date: row.date,
         title: row.type === "income" ? "收入记录" : "支出记录",
-        summary: `${row.categoryId} · ¥${(row.amountFen / 100).toFixed(2)}${row.note ? ` · ${row.note}` : ""}`,
+        summary: `${financeCategoryLabel(row.categoryId)} · ¥${(row.amountFen / 100).toFixed(2)}${row.note ? ` · ${row.note}` : ""}`,
         to: "/finance",
         createdAt: row.createdAt,
       });
@@ -978,6 +988,20 @@ export class TimelineRepository {
     }
 
     const sorted = items.sort(compareTimelineItems);
+    const sourceCounts: TimelineResponse["summary"]["sourceCounts"] = {
+      finance: 0,
+      habit: 0,
+      fitness: 0,
+      schedule: 0,
+      shopping: 0,
+      media: 0,
+    };
+    for (const item of sorted) sourceCounts[item.source] += 1;
+    const summary: TimelineResponse["summary"] = {
+      totalRecords: sorted.length,
+      activeDays: new Set(sorted.map((item) => item.date)).size,
+      sourceCounts,
+    };
     const cursor = filters.cursor ? decodeTimelineCursor(filters.cursor) : null;
     const remaining = cursor
       ? sorted.filter((item) => compareTimelineItems(item, cursor) > 0)
@@ -988,6 +1012,7 @@ export class TimelineRepository {
     return {
       items: page,
       nextCursor: hasMore && lastItem ? encodeTimelineCursor(lastItem) : null,
+      summary,
     };
   }
 }

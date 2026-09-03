@@ -10,6 +10,8 @@ const serverConfigSchema = z.object({
   uploadDirectory: z.string().min(1).default("../../uploads"),
   sessionSecret: z.string().min(32).default("development-only-session-secret-change-me"),
   sessionTtlDays: z.coerce.number().int().min(1).max(365).default(30),
+  deepSeekApiKey: z.string().min(20).nullable().default(null),
+  deepSeekModel: z.string().min(1).default("deepseek-v4-pro"),
   nodeEnv: z.enum(["development", "test", "production"]).default("development"),
 });
 
@@ -22,6 +24,8 @@ export interface ServerConfig {
   uploadDirectory: string | null;
   sessionSecret: string;
   sessionTtlDays: number;
+  deepSeekApiKey: string | null;
+  deepSeekModel: string;
   nodeEnv: "development" | "test" | "production";
   cookieSecure: boolean;
 }
@@ -36,6 +40,8 @@ export function readServerConfig(env: NodeJS.ProcessEnv = process.env): ServerCo
     uploadDirectory: env.UPLOAD_DIR,
     sessionSecret: env.SESSION_SECRET,
     sessionTtlDays: env.SESSION_TTL_DAYS,
+    deepSeekApiKey: env.DEEPSEEK_API_KEY ?? null,
+    deepSeekModel: env.DEEPSEEK_MODEL,
     nodeEnv: env.NODE_ENV,
   });
 

@@ -1,4 +1,4 @@
-import type { ScheduleResponse } from "@daily-life/shared";
+import { type ScheduleResponse, todoPriorityLabels } from "@daily-life/shared";
 import {
   Button,
   Card,
@@ -7,23 +7,28 @@ import {
   FormItem,
   Input,
   Select,
+  Table,
+  type TableColumn,
   Tag,
   TimePicker,
   Title,
 } from "animal-island-ui";
-import { addDays, format, startOfWeek } from "date-fns";
+import { format } from "date-fns";
 import { useMemo, useState } from "react";
 import { DeleteRecordButton } from "@/components/DeleteRecordButton";
+import { RecordEditorActions, RecordEditorDrawer } from "@/components/RecordEditorDrawer";
+import { ScheduleCreateForm } from "@/components/record-editors/ScheduleCreateForm";
 import { useSchedule, useScheduleMutations } from "@/data-provider/life";
+import { formatLocalDate } from "@/presentation/domain-formatters";
 import { notify } from "@/services/notification.service";
+import {
+  type BrowserNotificationStatus,
+  getBrowserNotificationStatus,
+  requestBrowserNotificationPermission,
+} from "@/services/reminder-notification.service";
+import { WeekSchedule } from "./WeekSchedule";
 
-const priorityOptions = [
-  { key: "low", label: "低" },
-  { key: "normal", label: "普通" },
-  { key: "high", label: "高" },
-  { key: "urgent", label: "紧急" },
-];
-const priorityLabels = Object.fromEntries(priorityOptions.map((item) => [item.key, item.label]));
+const priorityOptions = Object.entries(todoPriorityLabels).map(([key, label]) => ({ key, label }));
 const priorityTagColors = {
   low: "default",
   normal: "app-teal",
@@ -44,10 +49,51 @@ const reminderOptions = [
   { key: "60", label: "提前 1 小时" },
   { key: "1440", label: "提前 1 天" },
 ];
+const scheduleEditorFormId = "schedule-editor-form";
 
 function reminderLabel(minutes: number | null): string | null {
   if (minutes === null) return null;
   return reminderOptions.find((option) => option.key === String(minutes))?.label ?? null;
+}
+
+function BrowserNotificationControl() {
+  const [status, setStatus] = useState<BrowserNotificationStatus>(getBrowserNotificationStatus);
+  const enable = async () => {
+    const permission = await requestBrowserNotificationPermission();
+    setStatus(permission);
+    if (permission === "granted") {
+      notify.success("浏览器提醒已启用。");
+    } else if (permission === "denied") {
+      notify.warning("浏览器已阻止通知，请在地址栏的网站权限中允许通知。");
+    } else {
+      notify.warning("当前浏览器无法启用系统通知，将继续使用站内提醒。");
+    }
+  };
+
+  if (status === "granted") {
+    return (
+      <p className="m-0 text-sm text-[var(--animal-text-color-secondary)]">浏览器提醒已启用</p>
+    );
+  }
+  if (status === "denied") {
+    return (
+      <p className="m-0 text-sm text-[var(--animal-text-color-secondary)]">
+        浏览器通知已被阻止，请在地址栏的网站权限中改为允许。
+      </p>
+    );
+  }
+  if (status === "unsupported") {
+    return (
+      <p className="m-0 text-sm text-[var(--animal-text-color-secondary)]">
+        当前浏览器不支持系统通知，将继续使用站内提醒。
+      </p>
+    );
+  }
+  return (
+    <Button type="default" onClick={enable}>
+      启用浏览器提醒
+    </Button>
+  );
 }
 
 export function Component() {
@@ -61,6 +107,7 @@ export function Component() {
   const [reminder, setReminder] = useState("none");
   const [filter, setFilter] = useState("all");
   const [editing, setEditing] = useState<ScheduleResponse["items"][number] | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
   const schedule = useSchedule(today);
   const mutations = useScheduleMutations(today);
   const clearEditor = () => {
@@ -72,6 +119,11 @@ export function Component() {
     setPriority("normal");
     setNote("");
     setReminder("none");
+    setEditorOpen(false);
+  };
+  const openCreateEditor = () => {
+    clearEditor();
+    setEditorOpen(true);
   };
   const listOptions = (schedule.data?.lists ?? []).map((list) => ({
     key: list.id,
@@ -87,20 +139,108 @@ export function Component() {
       }),
     [filter, schedule.data, today],
   );
-  const weekDays = useMemo(() => {
-    const weekStart = startOfWeek(new Date(`${today}T12:00:00`), { weekStartsOn: 1 });
-    return Array.from({ length: 7 }, (_, index) => {
-      const current = addDays(weekStart, index);
-      const currentDate = format(current, "yyyy-MM-dd");
-      return {
-        date: currentDate,
-        weekday: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"][index],
-        day: format(current, "MM/dd"),
-        items: (schedule.data?.items ?? []).filter((item) => item.date === currentDate),
-      };
-    });
-  }, [schedule.data?.items, today]);
+  const visibleItemsById = new Map(visibleItems.map((item) => [item.id, item]));
+  const tableData: Record<string, unknown>[] = visibleItems.map((item) => ({
+    ...item,
+  }));
+  const tableColumns: TableColumn[] = [
+    {
+      title: "优先级",
+      dataIndex: "priority",
+      width: 110,
+      render: (_value, record) => {
+        const item = typeof record.id === "string" ? visibleItemsById.get(record.id) : undefined;
+        if (!item) return null;
+        return (
+          <Tag
+            size="small"
+            variant="soft"
+            color={item.isOverdue ? "app-red" : priorityTagColors[item.priority]}
+          >
+            {item.isOverdue ? "已逾期" : todoPriorityLabels[item.priority]}
+          </Tag>
+        );
+      },
+    },
+    {
+      title: "事项",
+      dataIndex: "title",
+      width: 260,
+      render: (_value, record) => {
+        const item = typeof record.id === "string" ? visibleItemsById.get(record.id) : undefined;
+        if (!item) return null;
+        return (
+          <div className="grid gap-1">
+            <strong>{item.title}</strong>
+            {item.note ? (
+              <span className="text-sm text-[var(--animal-text-color-secondary)]">{item.note}</span>
+            ) : null}
+          </div>
+        );
+      },
+    },
+    {
+      title: "日期",
+      dataIndex: "date",
+      width: 150,
+      render: (value) => (typeof value === "string" ? formatLocalDate(value) : "—"),
+    },
+    {
+      title: "时间",
+      dataIndex: "time",
+      width: 100,
+      render: (value) => (typeof value === "string" ? value : "全天"),
+    },
+    {
+      title: "提醒",
+      dataIndex: "reminderMinutesBefore",
+      width: 150,
+      render: (value) => (typeof value === "number" ? reminderLabel(value) : null) ?? "不提醒",
+    },
+    {
+      title: "操作",
 
+      align: "right",
+      fixed: "right",
+
+      render: (_value, record) => {
+        const item = typeof record.id === "string" ? visibleItemsById.get(record.id) : undefined;
+        if (!item) return null;
+        return (
+          <div className="flex flex-nowrap items-center justify-end gap-2.5">
+            <Button
+              type="dashed"
+              size="small"
+              aria-label={`${item.status === "completed" ? "恢复" : "完成"}“${item.title}”`}
+              onClick={() =>
+                mutations.status.mutate({
+                  id: item.id,
+                  status: item.status === "completed" ? "pending" : "completed",
+                })
+              }
+            >
+              {item.status === "completed" ? "恢复" : "完成"}
+            </Button>
+            <Button
+              type="default"
+              size="small"
+              aria-label={`编辑“${item.title}”`}
+              onClick={() => beginEdit(item)}
+            >
+              编辑
+            </Button>
+            <DeleteRecordButton
+              source="schedule"
+              id={item.id}
+              label={item.title}
+              expectedUpdatedAt={item.updatedAt}
+              appearance="button"
+            />
+          </div>
+        );
+      },
+    },
+  ];
   const submit = () => {
     if (!title.trim()) {
       notify.error("请填写待办事项。");
@@ -120,24 +260,16 @@ export function Component() {
       reminderMinutesBefore:
         reminder === "none" ? null : (Number(reminder) as 0 | 10 | 30 | 60 | 1_440),
     };
-    if (editing) {
-      mutations.update.mutate(
-        { ...values, id: editing.id, expectedUpdatedAt: editing.updatedAt },
-        {
-          onSuccess: () => {
-            clearEditor();
-            notify.success("待办已更新。");
-          },
+    if (!editing) return;
+    mutations.update.mutate(
+      { ...values, id: editing.id, expectedUpdatedAt: editing.updatedAt },
+      {
+        onSuccess: () => {
+          clearEditor();
+          notify.success("待办已更新。");
         },
-      );
-    } else {
-      mutations.create.mutate(
-        { ...values, id: crypto.randomUUID() },
-        {
-          onSuccess: clearEditor,
-        },
-      );
-    }
+      },
+    );
   };
 
   const beginEdit = (item: ScheduleResponse["items"][number]) => {
@@ -149,16 +281,25 @@ export function Component() {
     setPriority(item.priority);
     setNote(item.note ?? "");
     setReminder(item.reminderMinutesBefore === null ? "none" : String(item.reminderMinutesBefore));
+    setEditorOpen(true);
   };
 
   return (
     <section className="grid min-w-0 gap-7 [&>*]:min-w-0">
-      <header className="[&_h1]:my-2 [&_h1]:font-sans [&_h1]:text-[clamp(30px,4vw,46px)] [&_h1]:leading-[1.18] [&_h1]:text-[var(--animal-text-color)] [&>p]:m-0 [&>p]:max-w-[680px] [&>p]:text-island-muted">
-        <p className="m-0 text-xs font-extrabold uppercase tracking-[0.15em] text-[var(--animal-primary-color)]">
-          日程统筹
-        </p>
-        <h1>把事情放到合适的日子</h1>
-        <p>时间可以留空作为全天事项；提醒会在工作台打开时通过站内 Toast 出现。</p>
+      <header className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end [&_h1]:my-2 [&_h1]:font-sans [&_h1]:text-[clamp(30px,4vw,46px)] [&_h1]:leading-[1.18] [&_h1]:text-[var(--animal-text-color)] [&_p]:m-0 [&_p]:max-w-[680px] [&_p]:text-island-muted">
+        <div>
+          <p className="m-0 text-xs font-extrabold uppercase tracking-[0.15em] text-[var(--animal-primary-color)]">
+            日程统筹
+          </p>
+          <h1>把事情放到合适的日子</h1>
+          <p>时间可以留空作为全天事项；启用浏览器通知后，切到其他页面也能收到提醒。</p>
+        </div>
+        <div className="flex flex-col items-start gap-3 sm:items-end">
+          <BrowserNotificationControl />
+          <Button type="primary" size="large" onClick={openCreateEditor}>
+            加入日程
+          </Button>
+        </div>
       </header>
       <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-2 xl:grid-cols-4">
         <Card
@@ -209,174 +350,145 @@ export function Component() {
           </div>
           <p>全天事项与定时事项放在同一条日程线上。</p>
         </div>
-        <div className="min-w-0 max-w-full overflow-x-auto px-0.5 pb-2 pt-0.5">
-          <ol
-            className="m-0 grid min-w-[920px] list-none grid-cols-7 gap-2.5 p-0"
-            aria-label="本周七天日程"
-          >
-            {weekDays.map((day) => (
-              <li
-                className={`min-h-[210px] rounded-[var(--animal-border-radius-base)] border-[length:var(--animal-border-width)] p-3.5 ${
-                  day.date === today
-                    ? "border-[var(--animal-primary-color)] bg-[var(--animal-primary-color-bg)]"
-                    : "border-[var(--animal-border-color-light)] bg-[var(--animal-surface-color)]"
-                }`}
-                key={day.date}
-              >
-                <div className="flex items-baseline justify-between gap-2 border-b-[var(--animal-border-width)] border-dashed border-[var(--animal-border-color-light)] pb-2.5 [&_span]:text-[length:var(--animal-font-size-sm)] [&_span]:text-[var(--animal-text-color-secondary)]">
-                  <strong>{day.weekday}</strong>
-                  <span>{day.day}</span>
-                </div>
-                <div className="mt-2.5 grid gap-2 [&_p]:m-0 [&_p]:rounded-[var(--animal-border-radius-sm)] [&_p]:bg-[var(--animal-bg-color)] [&_p]:p-2 [&_p_span]:mb-[3px] [&_p_span]:block [&_p_span]:text-[length:var(--animal-font-size-sm)] [&_p_span]:text-[var(--animal-primary-color-active)] [&_p_strong]:block [&_p_strong]:overflow-hidden [&_p_strong]:text-ellipsis [&_p_strong]:whitespace-nowrap [&_p_strong]:text-[length:var(--animal-font-size-sm)] [&_small]:text-[length:var(--animal-font-size-sm)] [&_small]:text-[var(--animal-text-color-secondary)]">
-                  {day.items.slice(0, 3).map((item) => (
-                    <p
-                      className={
-                        item.status === "completed"
-                          ? "opacity-[0.58] [&_strong]:line-through"
-                          : undefined
-                      }
-                      key={item.id}
-                    >
-                      <span>{item.time ?? "全天"}</span>
-                      <strong>{item.title}</strong>
-                    </p>
-                  ))}
-                  {day.items.length === 0 ? <small>暂无安排</small> : null}
-                  {day.items.length > 3 ? <small>另有 {day.items.length - 3} 项</small> : null}
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
+        <WeekSchedule today={today} items={schedule.data?.items ?? []} />
       </Card>
 
-      <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(340px,0.8fr)_minmax(440px,1.2fr)]">
-        <div className="flex flex-col items-start gap-[18px] lg:sticky lg:top-6 lg:self-start">
-          <div className="flex min-h-12 w-full items-start justify-between gap-3 sm:min-h-[54px] sm:gap-[18px] [&>:first-child]:flex-none [&_.animal-select]:mt-1 [&_.animal-select]:w-[min(200px,52%)] sm:[&_.animal-select]:w-[min(220px,48%)]">
-            <Title color="app-yellow">{editing ? "编辑日程" : "加入日程"}</Title>
-          </div>
-          <Card className="w-full p-[22px] sm:p-7 [&_h2]:mt-0 [&_.animal-date-picker]:w-full [&_.animal-time-picker]:w-full [&_.animal-select]:w-full">
-            <Form layout="vertical" onFinish={submit}>
-              <FormItem name="title" label="事项">
-                <Input
-                  value={title}
-                  onChange={(event) => setTitle(event.target.value)}
-                  placeholder="今天要做什么？"
+      <div className="flex w-full flex-col items-start gap-[18px]">
+        <div className="flex min-h-12 w-full items-start justify-between gap-3 sm:min-h-[54px] sm:gap-[18px] [&>:first-child]:flex-none [&_.animal-select]:mt-1 [&_.animal-select]:w-[min(200px,52%)] sm:[&_.animal-select]:w-[min(220px,48%)]">
+          <Title color="app-teal">待办事项</Title>
+          <Select
+            aria-label="筛选待办事项"
+            options={filterOptions}
+            value={filter}
+            onChange={setFilter}
+          />
+        </div>
+        <Card className="w-full overflow-hidden p-3 sm:p-5">
+          <Table
+            columns={tableColumns}
+            dataSource={tableData}
+            rowKey="id"
+            loading={schedule.isPending}
+            scroll={{ x: 1_000 }}
+            emptyText={
+              <div className="grid min-h-[160px] place-items-center gap-4 px-6 py-10 text-center text-[var(--animal-text-color-secondary)]">
+                <p className="m-0">当前筛选下没有事项。</p>
+                <Button type="primary" onClick={openCreateEditor}>
+                  添加第一项日程
+                </Button>
+              </div>
+            }
+          />
+        </Card>
+      </div>
+
+      <RecordEditorDrawer
+        open={editorOpen}
+        title={editing ? "编辑日程" : "加入日程"}
+        onClose={clearEditor}
+        protectUnsavedChanges
+        footer={
+          editing ? (
+            <RecordEditorActions
+              formId={scheduleEditorFormId}
+              saveLabel="保存日程修改"
+              isSaving={mutations.update.isPending}
+              onCancel={clearEditor}
+            />
+          ) : undefined
+        }
+        wide
+      >
+        {editing ? (
+          <Form
+            key={editing.id}
+            id={scheduleEditorFormId}
+            initialValues={{
+              title: editing.title,
+              date: editing.date,
+              time: editing.time,
+              listId: editing.listId ?? "",
+              priority: editing.priority,
+              reminder:
+                editing.reminderMinutesBefore === null
+                  ? "none"
+                  : String(editing.reminderMinutesBefore),
+              note: editing.note ?? "",
+            }}
+            layout="vertical"
+            onFinish={submit}
+          >
+            <FormItem name="title" label="事项">
+              <Input
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                placeholder="今天要做什么？"
+                allowClear
+              />
+            </FormItem>
+            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+              <FormItem name="date" label="日期">
+                <DatePicker
+                  aria-label="日期"
+                  value={date}
+                  onChange={(value) => typeof value === "string" && setDate(value)}
+                />
+              </FormItem>
+              <FormItem name="time" label="时间">
+                <TimePicker
+                  aria-label="时间"
+                  format="HH:mm"
+                  value={time ?? ""}
+                  onChange={setTime}
                   allowClear
                 />
               </FormItem>
-              <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-                <FormItem name="date" label="日期">
-                  <DatePicker
-                    value={date}
-                    onChange={(value) => typeof value === "string" && setDate(value)}
-                  />
-                </FormItem>
-                <FormItem name="time" label="时间">
-                  <TimePicker format="HH:mm" value={time ?? ""} onChange={setTime} allowClear />
-                </FormItem>
-              </div>
-              <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-                <FormItem name="listId" label="清单">
+            </div>
+            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+              <FormItem name="listId" label="清单">
+                <div className="w-fit max-w-full">
                   <Select
+                    aria-label="清单"
                     options={[{ key: "", label: "未分类" }, ...listOptions]}
                     value={listId}
                     onChange={setListId}
                   />
-                </FormItem>
-                <FormItem name="priority" label="优先级">
-                  <Select options={priorityOptions} value={priority} onChange={setPriority} />
-                </FormItem>
-              </div>
-              <FormItem name="reminder" label="到时提醒">
-                <Select options={reminderOptions} value={reminder} onChange={setReminder} />
+                </div>
               </FormItem>
-              <FormItem name="note" label="备注">
-                <Input value={note} onChange={(event) => setNote(event.target.value)} allowClear />
+              <FormItem name="priority" label="优先级">
+                <div className="w-fit max-w-full">
+                  <Select
+                    aria-label="优先级"
+                    options={priorityOptions}
+                    value={priority}
+                    onChange={setPriority}
+                  />
+                </div>
               </FormItem>
-              <Button
-                type="primary"
-                htmlType="submit"
-                block
-                loading={mutations.create.isPending || mutations.update.isPending}
-              >
-                {editing ? "保存日程修改" : "加入日程"}
-              </Button>
-              {editing ? (
-                <Button htmlType="button" block onClick={clearEditor}>
-                  取消编辑
-                </Button>
-              ) : null}
-            </Form>
-          </Card>
-        </div>
-
-        <div className="flex w-full flex-col items-start gap-[18px]">
-          <div className="flex min-h-12 w-full items-start justify-between gap-3 sm:min-h-[54px] sm:gap-[18px] [&>:first-child]:flex-none [&_.animal-select]:mt-1 [&_.animal-select]:w-[min(200px,52%)] sm:[&_.animal-select]:w-[min(220px,48%)]">
-            <Title color="app-teal">待办事项</Title>
-            <Select options={filterOptions} value={filter} onChange={setFilter} />
-          </div>
-          <Card className="w-full p-[22px] sm:p-7">
-            {visibleItems.length === 0 ? (
-              <p className="grid min-h-[140px] w-full place-items-center px-6 py-[42px] text-center text-[var(--animal-text-color-secondary)]">
-                当前筛选下没有事项。
-              </p>
-            ) : null}
-            <div className="grid">
-              {visibleItems.map((item) => (
-                <article
-                  className={`grid grid-cols-1 items-start gap-3.5 border-b-[var(--animal-border-width)] border-dashed border-[var(--animal-border-color-light)] px-1 py-[18px] [contain-intrinsic-size:88px] [content-visibility:auto] last:border-b-0 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-6 ${
-                    item.status === "completed" ? "[&>div:first-child]:opacity-[0.65]" : ""
-                  }`}
-                  key={item.id}
-                >
-                  <div className="min-w-0 [&_strong]:my-[5px] [&_p]:m-0 [&_p]:leading-relaxed [&_p]:text-[var(--animal-text-color-secondary)]">
-                    <Tag
-                      size="small"
-                      variant="soft"
-                      color={item.isOverdue ? "app-red" : priorityTagColors[item.priority]}
-                    >
-                      {item.isOverdue ? "已逾期" : priorityLabels[item.priority]}
-                    </Tag>
-                    <strong>{item.title}</strong>
-                    <p>
-                      {item.date} · {item.time ?? "全天"}
-                      {reminderLabel(item.reminderMinutesBefore)
-                        ? ` · ${reminderLabel(item.reminderMinutesBefore)}`
-                        : ""}
-                      {item.note ? ` · ${item.note}` : ""}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap items-center justify-end gap-2.5">
-                    <Button
-                      type="dashed"
-                      size="small"
-                      onClick={() =>
-                        mutations.status.mutate({
-                          id: item.id,
-                          status: item.status === "completed" ? "pending" : "completed",
-                        })
-                      }
-                    >
-                      {item.status === "completed" ? "恢复" : "完成"}
-                    </Button>
-                    <Button type="default" size="small" onClick={() => beginEdit(item)}>
-                      编辑
-                    </Button>
-                    <DeleteRecordButton
-                      source="schedule"
-                      id={item.id}
-                      label={item.title}
-                      expectedUpdatedAt={item.updatedAt}
-                      appearance="button"
-                    />
-                  </div>
-                </article>
-              ))}
             </div>
-          </Card>
-        </div>
-      </div>
+            <FormItem name="reminder" label="到时提醒">
+              <div className="w-fit max-w-full">
+                <Select
+                  aria-label="到时提醒"
+                  options={reminderOptions}
+                  value={reminder}
+                  onChange={setReminder}
+                />
+              </div>
+            </FormItem>
+            <FormItem name="note" label="备注">
+              <Input value={note} onChange={(event) => setNote(event.target.value)} allowClear />
+            </FormItem>
+          </Form>
+        ) : editorOpen ? (
+          <ScheduleCreateForm
+            defaultDate={today}
+            listOptions={listOptions}
+            isSubmitting={mutations.create.isPending}
+            onSubmit={(input) => mutations.create.mutate(input, { onSuccess: clearEditor })}
+          />
+        ) : null}
+      </RecordEditorDrawer>
     </section>
   );
 }

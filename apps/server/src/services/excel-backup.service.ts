@@ -492,8 +492,11 @@ export class ExcelBackupService {
     return { workbook: Buffer.from(bytes), backup };
   }
 
-  async preflight(workbookBase64: string): Promise<RestorePreflightResponse> {
-    return this.dataBackupService.preflight(await this.readBackup(workbookBase64));
+  async preflight(userId: string, workbookBase64: string): Promise<RestorePreflightResponse> {
+    return this.dataBackupService.preflight(
+      await this.readBackup(workbookBase64),
+      this.mediaCoverService.countForUser(userId),
+    );
   }
 
   async restore(

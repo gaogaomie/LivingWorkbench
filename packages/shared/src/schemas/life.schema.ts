@@ -310,6 +310,18 @@ export const timelineItemSchema = z.object({
 export const timelineResponseSchema = z.object({
   items: z.array(timelineItemSchema),
   nextCursor: z.string().nullable(),
+  summary: z.object({
+    totalRecords: z.number().int().nonnegative(),
+    activeDays: z.number().int().nonnegative(),
+    sourceCounts: z.object({
+      finance: z.number().int().nonnegative(),
+      habit: z.number().int().nonnegative(),
+      fitness: z.number().int().nonnegative(),
+      schedule: z.number().int().nonnegative(),
+      shopping: z.number().int().nonnegative(),
+      media: z.number().int().nonnegative(),
+    }),
+  }),
 });
 export const overviewResponseSchema = z.object({
   date: localDateSchema,

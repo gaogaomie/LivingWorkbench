@@ -52,7 +52,7 @@ export function Sidebar() {
     return () => window.clearInterval(intervalId);
   }, []);
 
-  const username = authSession.data?.user.username ?? "日常集用户";
+  const username = authSession.data?.user.username ?? "岛民";
   const timeLabel = format(now, "M月d日 EEEE HH:mm", { locale: zhCN });
 
   const handleLogout = async () => {
@@ -76,7 +76,7 @@ export function Sidebar() {
         />
         <span>
           <strong className="block text-xl">日常集</strong>
-          <small className="text-island-muted">把日子收成一座岛</small>
+          <small className="text-island-muted">岛民的每一天</small>
         </span>
       </NavLink>
       <div className="flex-1 py-2">
@@ -98,13 +98,13 @@ export function Sidebar() {
       <footer className="rounded-2xl bg-white/60 p-3">
         <div className="flex items-center justify-between gap-2">
           <strong>{username}</strong>
-          <Tooltip title="退出登录，离开小岛" placement="top-end" trigger="hover" variant="island">
+          <Tooltip title="退出登录" placement="top-end" trigger="hover" variant="island">
             <Button
               type="text"
               size="small"
               icon={<Icon name="icon-helicopter" size={22} bounce />}
               loading={logout.isPending}
-              aria-label="退出登录，离开小岛"
+              aria-label="退出登录"
               onClick={handleLogout}
             />
           </Tooltip>

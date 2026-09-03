@@ -1,0 +1,185 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - status [ref=e3]
+    - generic [ref=e4]:
+      - link "跳到主要内容" [ref=e5] [cursor=pointer]:
+        - /url: "#main-content"
+      - complementary [ref=e6]:
+        - link "回到今日总览" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e8]:
+            - strong [ref=e9]: 日常集
+            - text: 岛民的每一天
+        - generic [ref=e10]:
+          - link "今日总览" [ref=e11] [cursor=pointer]:
+            - /url: /
+          - navigation "生活模块" [ref=e13]:
+            - paragraph [ref=e14]: 生活模块
+            - link "记账理财" [ref=e15] [cursor=pointer]:
+              - /url: /finance
+            - link "习惯健康" [ref=e17] [cursor=pointer]:
+              - /url: /habits
+            - link "减脂健身" [ref=e19] [cursor=pointer]:
+              - /url: /fitness
+            - link "日程统筹" [ref=e21] [cursor=pointer]:
+              - /url: /schedule
+            - link "待买清单" [ref=e23] [cursor=pointer]:
+              - /url: /shopping
+            - link "书影音" [ref=e25] [cursor=pointer]:
+              - /url: /media
+          - navigation "数据" [ref=e27]:
+            - paragraph [ref=e28]: 数据
+            - link "时光档案" [ref=e29] [cursor=pointer]:
+              - /url: /timeline
+            - link "回收站" [ref=e31] [cursor=pointer]:
+              - /url: /settings
+        - generic [ref=e33]:
+          - generic [ref=e34]:
+            - strong [ref=e35]: admin
+            - generic [ref=e36]:
+              - button "退出登录" [ref=e37] [cursor=pointer]
+              - tooltip [aria-hidden]:
+                - generic: 退出登录
+          - time [ref=e40]: 9月3日 星期四 21:30
+      - main [ref=e41]:
+        - generic [ref=e43]:
+          - generic [ref=e44]:
+            - generic [ref=e45]:
+              - paragraph [ref=e46]: 日程统筹
+              - heading "把事情放到合适的日子" [level=1] [ref=e47]
+              - paragraph [ref=e48]: 时间可以留空作为全天事项；启用浏览器通知后，切到其他页面也能收到提醒。
+            - generic [ref=e49]:
+              - button "启用浏览器提醒" [ref=e50] [cursor=pointer]
+              - button "加入日程" [ref=e52] [cursor=pointer]
+          - generic [ref=e54]:
+            - generic [ref=e55]:
+              - paragraph [ref=e56]: 今天
+              - strong [ref=e57]: "4"
+            - generic [ref=e58]:
+              - paragraph [ref=e59]: 逾期
+              - strong [ref=e60]: "0"
+            - generic [ref=e61]:
+              - paragraph [ref=e62]: 未来 7 天
+              - strong [ref=e63]: "4"
+            - generic [ref=e64]:
+              - paragraph [ref=e65]: 已完成
+              - strong [ref=e66]: "0"
+          - generic [ref=e67]:
+            - generic [ref=e68]:
+              - generic [ref=e69]:
+                - paragraph [ref=e70]: 本周视图
+                - heading "七天安排" [level=2] [ref=e71]
+              - paragraph [ref=e72]: 全天事项与定时事项放在同一条日程线上。
+            - list "本周七天日程" [ref=e74]:
+              - listitem [ref=e75]:
+                - generic [ref=e76]:
+                  - strong [ref=e77]: 周一
+                  - generic [ref=e78]: 08/31
+                - generic [ref=e79]: 暂无安排
+              - listitem [ref=e81]:
+                - generic [ref=e82]:
+                  - strong [ref=e83]: 周二
+                  - generic [ref=e84]: 09/01
+                - generic [ref=e85]: 暂无安排
+              - listitem [ref=e87]:
+                - generic [ref=e88]:
+                  - strong [ref=e89]: 周三
+                  - generic [ref=e90]: 09/02
+                - generic [ref=e91]: 暂无安排
+              - listitem [ref=e93]:
+                - generic [ref=e94]:
+                  - strong [ref=e95]: 周四
+                  - generic [ref=e96]: 09/03
+                - generic [ref=e97]:
+                  - generic [ref=e98]:
+                    - generic [ref=e99]: 00:20
+                    - strong [ref=e100]: 吃饭睡觉打豆豆
+                  - generic [ref=e101]:
+                    - generic [ref=e102]: 20:00
+                    - strong [ref=e103]: 验证编码助手 skill
+                  - button "查看周四 9月3日的另外 2 项日程" [ref=e104]: 另有 2 项
+              - listitem [ref=e105]:
+                - generic [ref=e106]:
+                  - strong [ref=e107]: 周五
+                  - generic [ref=e108]: 09/04
+                - generic [ref=e109]: 暂无安排
+              - listitem [ref=e111]:
+                - generic [ref=e112]:
+                  - strong [ref=e113]: 周六
+                  - generic [ref=e114]: 09/05
+                - generic [ref=e115]: 暂无安排
+              - listitem [ref=e117]:
+                - generic [ref=e118]:
+                  - strong [ref=e119]: 周日
+                  - generic [ref=e120]: 09/06
+                - generic [ref=e121]: 暂无安排
+          - generic [ref=e123]:
+            - generic [ref=e124]:
+              - generic [ref=e125]: 待办事项
+              - combobox [ref=e133] [cursor=pointer]:
+                - generic [ref=e134]: 全部
+            - generic [ref=e139]:
+              - article [ref=e140]:
+                - generic [ref=e141]:
+                  - generic [ref=e142]: 普通
+                  - strong [ref=e144]: 吃饭睡觉打豆豆
+                  - paragraph [ref=e145]: 2026-09-03 · 00:20
+                - generic [ref=e146]:
+                  - button "完成" [ref=e147] [cursor=pointer]
+                  - button "编辑" [ref=e149] [cursor=pointer]
+                  - button "删除" [ref=e151] [cursor=pointer]
+              - article [ref=e153]:
+                - generic [ref=e154]:
+                  - generic [ref=e155]: 高
+                  - strong [ref=e157]: 验证编码助手 skill
+                  - paragraph [ref=e158]: 2026-09-03 · 20:00
+                - generic [ref=e159]:
+                  - button "完成" [ref=e160] [cursor=pointer]
+                  - button "编辑" [ref=e162] [cursor=pointer]
+                  - button "删除" [ref=e164] [cursor=pointer]
+              - article [ref=e166]:
+                - generic [ref=e167]:
+                  - generic [ref=e168]: 普通
+                  - strong [ref=e170]: 似懂非懂说
+                  - paragraph [ref=e171]: 2026-09-03 · 20:05
+                - generic [ref=e172]:
+                  - button "完成" [ref=e173] [cursor=pointer]
+                  - button "编辑" [ref=e175] [cursor=pointer]
+                  - button "删除" [ref=e177] [cursor=pointer]
+              - article [ref=e179]:
+                - generic [ref=e180]:
+                  - generic [ref=e181]: 普通
+                  - strong [ref=e183]: 整理明日安排
+                  - paragraph [ref=e184]: 2026-09-03 · 21:00
+                - generic [ref=e185]:
+                  - button "完成" [ref=e186] [cursor=pointer]
+                  - button "编辑" [ref=e188] [cursor=pointer]
+                  - button "删除" [ref=e190] [cursor=pointer]
+  - generic:
+    - generic:
+      - generic [aria-hidden]:
+        - dialog [aria-hidden]:
+          - generic:
+            - generic: 加入日程
+            - button: ×
+  - dialog "周四 · 09/03" [ref=e193]:
+    - generic [ref=e194]:
+      - generic [ref=e195]: 周四 · 09/03
+      - list [ref=e198]:
+        - listitem [ref=e199]:
+          - time [ref=e200]: 00:20
+          - strong [ref=e201]: 吃饭睡觉打豆豆
+          - generic [ref=e202]: 待办
+        - listitem [ref=e204]:
+          - time [ref=e205]: 20:00
+          - strong [ref=e206]: 验证编码助手 skill
+          - generic [ref=e207]: 待办
+        - listitem [ref=e209]:
+          - time [ref=e210]: 20:05
+          - strong [ref=e211]: 似懂非懂说
+          - generic [ref=e212]: 待办
+        - listitem [ref=e214]:
+          - time [ref=e215]: 21:00
+          - strong [ref=e216]: 整理明日安排
+          - generic [ref=e217]: 待办
+      - button "关闭" [active] [ref=e220] [cursor=pointer]

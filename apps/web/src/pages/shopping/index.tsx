@@ -1,34 +1,46 @@
-import type { ShoppingItem } from "@daily-life/shared";
-import { Button, Card, Form, FormItem, Input, Select, Tag, Title } from "animal-island-ui";
+import {
+  type ShoppingItem,
+  shoppingCategoryLabels,
+  shoppingPriorityLabels,
+  shoppingStatusLabels,
+} from "@daily-life/shared";
+import {
+  Button,
+  Card,
+  Form,
+  FormItem,
+  Input,
+  Select,
+  Table,
+  type TableColumn,
+  Tag,
+  Title,
+} from "animal-island-ui";
 import { format } from "date-fns";
 import { useMemo, useState } from "react";
+import { DonutChart } from "@/components/charts/StatisticsCharts";
 import { DeleteRecordButton } from "@/components/DeleteRecordButton";
+import { RecordEditorActions, RecordEditorDrawer } from "@/components/RecordEditorDrawer";
+import { ShoppingItemCreateForm } from "@/components/record-editors/ShoppingItemCreateForm";
 import { useShopping, useShoppingMutations } from "@/data-provider/life";
+import { formatMoneyFen } from "@/presentation/domain-formatters";
 import { notify } from "@/services/notification.service";
+import { summarizeWantedBudget } from "./shopping-statistics";
 
-const categoryOptions = [
-  { key: "food", label: "食品" },
-  { key: "daily", label: "日用" },
-  { key: "clothing", label: "服饰" },
-  { key: "digital", label: "数码" },
-  { key: "home", label: "家居" },
-  { key: "gift", label: "礼物" },
-  { key: "other", label: "其他" },
-];
-const categoryLabels = Object.fromEntries(categoryOptions.map((item) => [item.key, item.label]));
-const priorityOptions = [
-  { key: "casual", label: "随手记" },
-  { key: "someday", label: "有空买" },
-  { key: "soon", label: "近期买" },
-  { key: "urgent", label: "急需" },
-];
+const categoryOptions = Object.entries(shoppingCategoryLabels).map(([key, label]) => ({
+  key,
+  label,
+}));
+const priorityOptions = Object.entries(shoppingPriorityLabels).map(([key, label]) => ({
+  key,
+  label,
+}));
 const filterOptions = [
-  { key: "wanted", label: "待买" },
+  { key: "wanted", label: shoppingStatusLabels.wanted },
   { key: "all", label: "全部" },
-  { key: "purchased", label: "已买" },
+  { key: "purchased", label: shoppingStatusLabels.purchased },
 ];
-const moneyFormatter = new Intl.NumberFormat("zh-CN", { style: "currency", currency: "CNY" });
-
+const shoppingEditorFormId = "shopping-editor-form";
 export function Component() {
   const today = format(new Date(), "yyyy-MM-dd");
   const month = today.slice(0, 7);
@@ -41,6 +53,7 @@ export function Component() {
   const [note, setNote] = useState("");
   const [filter, setFilter] = useState("wanted");
   const [editing, setEditing] = useState<ShoppingItem | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
   const shopping = useShopping(month);
   const mutations = useShoppingMutations(month);
   const clearEditor = () => {
@@ -52,11 +65,124 @@ export function Component() {
     setPrice("");
     setPriority("someday");
     setNote("");
+    setEditorOpen(false);
+  };
+  const openCreateEditor = () => {
+    clearEditor();
+    setEditorOpen(true);
   };
   const visibleItems = useMemo(
     () => (shopping.data?.items ?? []).filter((item) => filter === "all" || item.status === filter),
     [filter, shopping.data],
   );
+  const wantedBudgetByCategory = useMemo(
+    () => summarizeWantedBudget(shopping.data?.items ?? []),
+    [shopping.data?.items],
+  );
+  const visibleItemsById = new Map(visibleItems.map((item) => [item.id, item]));
+  const tableData: Record<string, unknown>[] = visibleItems.map((item) => ({
+    ...item,
+  }));
+  const tableColumns: TableColumn[] = [
+    {
+      title: "分类",
+      dataIndex: "categoryId",
+      width: 110,
+      render: (_value, record) => {
+        const item = typeof record.id === "string" ? visibleItemsById.get(record.id) : undefined;
+        return item ? (
+          <Tag size="small" variant="soft" color="app-teal">
+            {shoppingCategoryLabels[item.categoryId]}
+          </Tag>
+        ) : null;
+      },
+    },
+    {
+      title: "物品",
+      dataIndex: "name",
+      width: 240,
+      render: (_value, record) => {
+        const item = typeof record.id === "string" ? visibleItemsById.get(record.id) : undefined;
+        if (!item) return null;
+        return (
+          <div className="grid gap-1">
+            <strong>{item.name}</strong>
+            {item.note ? (
+              <span className="text-sm text-[var(--animal-text-color-secondary)]">{item.note}</span>
+            ) : null}
+          </div>
+        );
+      },
+    },
+    {
+      title: "数量",
+      dataIndex: "quantity",
+      width: 110,
+      render: (_value, record) => {
+        const item = typeof record.id === "string" ? visibleItemsById.get(record.id) : undefined;
+        return item ? `${item.quantity}${item.unit ?? "件"}` : "—";
+      },
+    },
+    {
+      title: "预计单价",
+      dataIndex: "estimatedUnitPriceFen",
+      width: 140,
+      render: (value) => (typeof value === "number" ? formatMoneyFen(value) : "—"),
+    },
+    {
+      title: "优先级",
+      dataIndex: "priority",
+      width: 140,
+      render: (_value, record) => {
+        const item = typeof record.id === "string" ? visibleItemsById.get(record.id) : undefined;
+        return item ? shoppingPriorityLabels[item.priority] : "—";
+      },
+    },
+    {
+      title: "操作",
+
+      align: "right",
+      fixed: "right",
+
+      render: (_value, record) => {
+        const item = typeof record.id === "string" ? visibleItemsById.get(record.id) : undefined;
+        if (!item) return null;
+        return (
+          <div className="flex flex-nowrap items-center justify-end gap-2.5">
+            <Button
+              type="dashed"
+              size="small"
+              aria-label={`${item.status === "purchased" ? "恢复待买" : "标记已买"}“${item.name}”`}
+              onClick={() =>
+                mutations.status.mutate({
+                  item,
+                  status: item.status === "purchased" ? "wanted" : "purchased",
+                  purchasedOn: item.status === "purchased" ? null : today,
+                })
+              }
+            >
+              {item.status === "purchased" ? "恢复待买" : "标记已买"}
+            </Button>
+            <Button
+              type="default"
+              size="small"
+              aria-label={`编辑“${item.name}”`}
+              onClick={() => beginEdit(item)}
+            >
+              编辑
+            </Button>
+            <DeleteRecordButton
+              source="shopping"
+              id={item.id}
+              label={item.name}
+              expectedUpdatedAt={item.updatedAt}
+              appearance="button"
+            />
+          </div>
+        );
+      },
+    },
+  ];
 
   const submit = () => {
     const parsedQuantity = Number(quantity);
@@ -86,24 +212,16 @@ export function Component() {
       priority: priority as "casual" | "someday" | "soon" | "urgent",
       note: note.trim() || null,
     };
-    if (editing) {
-      mutations.update.mutate(
-        { ...values, id: editing.id, expectedUpdatedAt: editing.updatedAt },
-        {
-          onSuccess: () => {
-            clearEditor();
-            notify.success("待买物品已更新。");
-          },
+    if (!editing) return;
+    mutations.update.mutate(
+      { ...values, id: editing.id, expectedUpdatedAt: editing.updatedAt },
+      {
+        onSuccess: () => {
+          clearEditor();
+          notify.success("待买物品已更新。");
         },
-      );
-    } else {
-      mutations.create.mutate(
-        { ...values, id: crypto.randomUUID() },
-        {
-          onSuccess: clearEditor,
-        },
-      );
-    }
+      },
+    );
   };
 
   const beginEdit = (item: ShoppingItem) => {
@@ -115,16 +233,22 @@ export function Component() {
     setPrice(item.estimatedUnitPriceFen === null ? "" : String(item.estimatedUnitPriceFen / 100));
     setPriority(item.priority);
     setNote(item.note ?? "");
+    setEditorOpen(true);
   };
 
   return (
     <section className="grid gap-7">
-      <header className="[&_h1]:my-2 [&_h1]:font-sans [&_h1]:text-[clamp(30px,4vw,46px)] [&_h1]:leading-[1.18] [&_h1]:text-[var(--animal-text-color)] [&>p]:m-0 [&>p]:max-w-[680px] [&>p]:text-island-muted">
-        <p className="m-0 text-xs font-extrabold uppercase tracking-[0.15em] text-[var(--animal-primary-color)]">
-          待买清单
-        </p>
-        <h1>先记下来，再从容决定</h1>
-        <p>预计预算只统计仍在待买状态且填写了价格的物品。</p>
+      <header className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end [&_h1]:my-2 [&_h1]:font-sans [&_h1]:text-[clamp(30px,4vw,46px)] [&_h1]:leading-[1.18] [&_h1]:text-[var(--animal-text-color)] [&_p]:m-0 [&_p]:max-w-[680px] [&_p]:text-island-muted">
+        <div>
+          <p className="m-0 text-xs font-extrabold uppercase tracking-[0.15em] text-[var(--animal-primary-color)]">
+            待买清单
+          </p>
+          <h1>先记下来，再从容决定</h1>
+          <p>预计预算只统计仍在待买状态且填写了价格的物品。</p>
+        </div>
+        <Button type="primary" size="large" onClick={openCreateEditor}>
+          加入待买
+        </Button>
       </header>
       <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-3">
         <Card
@@ -140,9 +264,7 @@ export function Component() {
         >
           <p>预计预算</p>
           <strong>
-            {shopping.data
-              ? moneyFormatter.format(shopping.data.summary.estimatedBudgetFen / 100)
-              : "—"}
+            {shopping.data ? formatMoneyFen(shopping.data.summary.estimatedBudgetFen) : "—"}
           </strong>
         </Card>
         <Card
@@ -161,130 +283,158 @@ export function Component() {
           />
         </Card>
       </div>
-      <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(340px,0.8fr)_minmax(440px,1.2fr)]">
-        <div className="flex flex-col items-start gap-[18px] lg:sticky lg:top-6 lg:self-start">
-          <div className="flex min-h-12 w-full items-start justify-between gap-3 sm:min-h-[54px] sm:gap-[18px] [&>:first-child]:flex-none [&_.animal-select]:mt-1 [&_.animal-select]:w-[min(200px,52%)] sm:[&_.animal-select]:w-[min(220px,48%)]">
-            <Title color="app-yellow">{editing ? "编辑待买" : "加入待买"}</Title>
+      <Card className="px-[22px] py-[26px] sm:px-7">
+        <div className="mb-[22px] flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-end [&_h2]:mb-0 [&_h2]:mt-1 [&>p]:m-0 [&>p]:text-[var(--animal-text-color-secondary)]">
+          <div>
+            <p className="m-0 text-xs font-extrabold uppercase tracking-[0.15em] text-[var(--animal-primary-color)]">
+              预算洞察
+            </p>
+            <h2>待买预算分类</h2>
           </div>
-          <Card className="w-full p-[22px] sm:p-7 [&_h2]:mt-0 [&_.animal-date-picker]:w-full [&_.animal-time-picker]:w-full [&_.animal-select]:w-full">
-            <Form layout="vertical" onFinish={submit}>
-              <FormItem name="name" label="物品名称">
+          <p>只统计待买且已填写预计价格的物品。</p>
+        </div>
+        {wantedBudgetByCategory.length ? (
+          <DonutChart
+            ariaLabel="待买预算分类占比"
+            centerLabel="预计预算"
+            centerValue={formatMoneyFen(shopping.data?.summary.estimatedBudgetFen ?? 0)}
+            data={wantedBudgetByCategory.map((item) => ({
+              name: shoppingCategoryLabels[item.categoryId],
+              value: item.amountFen,
+              valueLabel: formatMoneyFen(item.amountFen),
+            }))}
+          />
+        ) : (
+          <p className="m-0 grid min-h-[92px] place-items-center text-center text-[var(--animal-text-color-secondary)]">
+            为待买物品填写预计价格后，这里会显示预算流向。
+          </p>
+        )}
+      </Card>
+      <div className="flex w-full flex-col items-start gap-[18px]">
+        <div className="flex min-h-12 w-full items-start justify-between gap-3 sm:min-h-[54px] sm:gap-[18px] [&>:first-child]:flex-none [&_.animal-select]:mt-1 [&_.animal-select]:w-[min(200px,52%)] sm:[&_.animal-select]:w-[min(220px,48%)]">
+          <Title color="app-teal">清单</Title>
+          <Select
+            aria-label="筛选待买清单"
+            options={filterOptions}
+            value={filter}
+            onChange={setFilter}
+          />
+        </div>
+        <Card className="w-full overflow-hidden p-3 sm:p-5">
+          <Table
+            columns={tableColumns}
+            dataSource={tableData}
+            rowKey="id"
+            loading={shopping.isPending}
+            scroll={{ x: 980 }}
+            emptyText={
+              <div className="grid min-h-[160px] place-items-center gap-4 px-6 py-10 text-center text-[var(--animal-text-color-secondary)]">
+                <p className="m-0">当前清单还是空的。</p>
+                <Button type="primary" onClick={openCreateEditor}>
+                  添加第一件物品
+                </Button>
+              </div>
+            }
+          />
+        </Card>
+      </div>
+
+      <RecordEditorDrawer
+        open={editorOpen}
+        title={editing ? "编辑待买" : "加入待买"}
+        onClose={clearEditor}
+        protectUnsavedChanges
+        footer={
+          editing ? (
+            <RecordEditorActions
+              formId={shoppingEditorFormId}
+              saveLabel="保存物品修改"
+              isSaving={mutations.update.isPending}
+              onCancel={clearEditor}
+            />
+          ) : undefined
+        }
+        wide
+      >
+        {editing ? (
+          <Form
+            key={editing.id}
+            id={shoppingEditorFormId}
+            initialValues={{
+              name: editing.name,
+              quantity: String(editing.quantity),
+              unit: editing.unit ?? "",
+              categoryId: editing.categoryId,
+              price:
+                editing.estimatedUnitPriceFen === null
+                  ? ""
+                  : String(editing.estimatedUnitPriceFen / 100),
+              priority: editing.priority,
+              note: editing.note ?? "",
+            }}
+            layout="vertical"
+            onFinish={submit}
+          >
+            <FormItem name="name" label="物品名称">
+              <Input
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                placeholder="想买什么？"
+                allowClear
+              />
+            </FormItem>
+            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+              <FormItem name="quantity" label="数量">
                 <Input
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  placeholder="想买什么？"
-                  allowClear
+                  inputMode="numeric"
+                  value={quantity}
+                  onChange={(event) => setQuantity(event.target.value)}
                 />
               </FormItem>
-              <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-                <FormItem name="quantity" label="数量">
-                  <Input
-                    inputMode="numeric"
-                    value={quantity}
-                    onChange={(event) => setQuantity(event.target.value)}
-                  />
-                </FormItem>
-                <FormItem name="unit" label="单位">
-                  <Input value={unit} onChange={(event) => setUnit(event.target.value)} />
-                </FormItem>
-              </div>
-              <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-                <FormItem name="categoryId" label="分类">
-                  <Select options={categoryOptions} value={categoryId} onChange={setCategoryId} />
-                </FormItem>
-                <FormItem name="price" label="预计单价（元）">
-                  <Input
-                    inputMode="decimal"
-                    value={price}
-                    onChange={(event) => setPrice(event.target.value)}
-                  />
-                </FormItem>
-              </div>
-              <FormItem name="priority" label="优先级">
-                <Select options={priorityOptions} value={priority} onChange={setPriority} />
+              <FormItem name="unit" label="单位">
+                <Input value={unit} onChange={(event) => setUnit(event.target.value)} />
               </FormItem>
-              <FormItem name="note" label="备注">
-                <Input value={note} onChange={(event) => setNote(event.target.value)} allowClear />
-              </FormItem>
-              <Button
-                type="primary"
-                htmlType="submit"
-                block
-                loading={mutations.create.isPending || mutations.update.isPending}
-              >
-                {editing ? "保存物品修改" : "加入待买清单"}
-              </Button>
-              {editing ? (
-                <Button htmlType="button" block onClick={clearEditor}>
-                  取消编辑
-                </Button>
-              ) : null}
-            </Form>
-          </Card>
-        </div>
-        <div className="flex w-full flex-col items-start gap-[18px]">
-          <div className="flex min-h-12 w-full items-start justify-between gap-3 sm:min-h-[54px] sm:gap-[18px] [&>:first-child]:flex-none [&_.animal-select]:mt-1 [&_.animal-select]:w-[min(200px,52%)] sm:[&_.animal-select]:w-[min(220px,48%)]">
-            <Title color="app-teal">清单</Title>
-            <Select options={filterOptions} value={filter} onChange={setFilter} />
-          </div>
-          <Card className="w-full p-[22px] sm:p-7">
-            {visibleItems.length === 0 ? (
-              <p className="grid min-h-[140px] w-full place-items-center px-6 py-[42px] text-center text-[var(--animal-text-color-secondary)]">
-                当前清单还是空的。
-              </p>
-            ) : null}
-            <div className="grid">
-              {visibleItems.map((item) => (
-                <article
-                  className={`grid grid-cols-1 items-start gap-3.5 border-b-[var(--animal-border-width)] border-dashed border-[var(--animal-border-color-light)] px-1 py-[18px] [contain-intrinsic-size:88px] [content-visibility:auto] last:border-b-0 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-6 ${
-                    item.status === "purchased" ? "[&>div:first-child]:opacity-[0.65]" : ""
-                  }`}
-                  key={item.id}
-                >
-                  <div className="min-w-0 [&_strong]:my-[5px] [&_p]:m-0 [&_p]:leading-relaxed [&_p]:text-[var(--animal-text-color-secondary)]">
-                    <Tag size="small" variant="soft" color="app-teal">
-                      {categoryLabels[item.categoryId]}
-                    </Tag>
-                    <strong>{item.name}</strong>
-                    <p>
-                      {item.quantity}
-                      {item.unit ?? "件"}
-                      {item.estimatedUnitPriceFen !== null
-                        ? ` · 预计 ${moneyFormatter.format(item.estimatedUnitPriceFen / 100)}/件`
-                        : ""}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap items-center justify-end gap-2.5">
-                    <Button
-                      type="dashed"
-                      size="small"
-                      onClick={() =>
-                        mutations.status.mutate({
-                          item,
-                          status: item.status === "purchased" ? "wanted" : "purchased",
-                          purchasedOn: item.status === "purchased" ? null : today,
-                        })
-                      }
-                    >
-                      {item.status === "purchased" ? "恢复待买" : "标记已买"}
-                    </Button>
-                    <Button type="default" size="small" onClick={() => beginEdit(item)}>
-                      编辑
-                    </Button>
-                    <DeleteRecordButton
-                      source="shopping"
-                      id={item.id}
-                      label={item.name}
-                      expectedUpdatedAt={item.updatedAt}
-                      appearance="button"
-                    />
-                  </div>
-                </article>
-              ))}
             </div>
-          </Card>
-        </div>
-      </div>
+            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+              <FormItem name="categoryId" label="分类">
+                <div className="w-fit max-w-full">
+                  <Select
+                    aria-label="分类"
+                    options={categoryOptions}
+                    value={categoryId}
+                    onChange={setCategoryId}
+                  />
+                </div>
+              </FormItem>
+              <FormItem name="price" label="预计单价（元）">
+                <Input
+                  inputMode="decimal"
+                  value={price}
+                  onChange={(event) => setPrice(event.target.value)}
+                />
+              </FormItem>
+            </div>
+            <FormItem name="priority" label="优先级">
+              <div className="w-fit max-w-full">
+                <Select
+                  aria-label="优先级"
+                  options={priorityOptions}
+                  value={priority}
+                  onChange={setPriority}
+                />
+              </div>
+            </FormItem>
+            <FormItem name="note" label="备注">
+              <Input value={note} onChange={(event) => setNote(event.target.value)} allowClear />
+            </FormItem>
+          </Form>
+        ) : editorOpen ? (
+          <ShoppingItemCreateForm
+            isSubmitting={mutations.create.isPending}
+            onSubmit={(input) => mutations.create.mutate(input, { onSuccess: clearEditor })}
+          />
+        ) : null}
+      </RecordEditorDrawer>
     </section>
   );
 }

@@ -175,6 +175,7 @@ export const restorePreflightResponseSchema = z.object({
   exportedAt: z.iso.datetime(),
   entityCounts: z.record(z.string(), z.number().int().nonnegative()),
   totalEntities: z.number().int().nonnegative(),
+  affectedMediaCoverCount: z.number().int().nonnegative(),
   warnings: z.array(z.string()),
 });
 

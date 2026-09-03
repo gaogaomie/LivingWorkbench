@@ -3,6 +3,7 @@ import type {
   FinanceEntry,
   FinanceMonthResponse,
   SetMonthlyBudget,
+  UpdateFinanceEntry,
 } from "@daily-life/shared";
 import { csrfHeaders, requestData } from "./http-client";
 
@@ -16,6 +17,13 @@ export const financeService = {
     requestData<{ entry: FinanceEntry; idempotentReplay: boolean }>({
       url: "/finance/entries",
       method: "POST",
+      headers: csrfHeaders(csrfToken),
+      data: entry,
+    }),
+  updateEntry: (id: string, entry: UpdateFinanceEntry, csrfToken: string) =>
+    requestData<FinanceEntry>({
+      url: `/finance/entries/${id}`,
+      method: "PATCH",
       headers: csrfHeaders(csrfToken),
       data: entry,
     }),
