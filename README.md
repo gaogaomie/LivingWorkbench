@@ -15,44 +15,6 @@
 - **数据安全**：软删除与恢复记录，导出业务全量 Excel，并在恢复前完成格式和关联校验。
 - **账号管理**：管理员创建成员账号，系统不开放公开注册，各账号的业务数据相互隔离。
 
-## 界面预览
-
-### 今日总览
-
-![今日总览：生活指数、AI 生活观察、快捷记录与最近动态](./docs/images/modules/overview.png)
-
-### 记账理财
-
-![记账理财：月度收支、预算与分类流向](./docs/images/modules/finance.png)
-
-### 习惯健康
-
-![习惯健康：今日完成情况、连续记录与习惯热力图](./docs/images/modules/habits.png)
-
-### 减脂健身
-
-![减脂健身：体重指标与趋势图](./docs/images/modules/fitness.png)
-
-### 日程统筹
-
-![日程统筹：七天安排、待办统计与提醒](./docs/images/modules/schedule.png)
-
-### 待买清单
-
-![待买清单：待买数量、预计预算与分类统计](./docs/images/modules/shopping.png)
-
-### 书影音
-
-![书影音：作品收藏、进度、评分与封面](./docs/images/modules/media.png)
-
-### 时光档案
-
-![时光档案：跨模块生活回顾、筛选与搜索](./docs/images/modules/timeline.png)
-
-### 设置与回收站
-
-![设置与回收站：Excel 备份恢复与软删除记录找回](./docs/images/modules/settings.png)
-
 ## 工程架构
 
 ```text
