@@ -1,9 +1,8 @@
-import { Button, Icon, type IconName, Tooltip } from "animal-island-ui";
+import { Button, Icon, Tooltip } from "animal-island-ui";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import dailyAnimals from "../assets/daily-animals.png";
 import { adminNavigation, dataNavigation, primaryNavigation } from "../constants/route-paths";
 import { useLogout } from "../data-provider/mutations/use-logout";
 import { useAuthSession } from "../data-provider/queries/use-auth-session";
@@ -15,7 +14,7 @@ function NavigationGroup({
   items,
 }: {
   label: string;
-  items: ReadonlyArray<{ label: string; to: string; icon: IconName }>;
+  items: ReadonlyArray<{ label: string; to: string; iconSrc: string }>;
 }) {
   return (
     <nav aria-label={label}>
@@ -33,7 +32,7 @@ function NavigationGroup({
           key={item.to}
           to={item.to}
         >
-          <Icon aria-hidden="true" name={item.icon} size={21} />
+          <Icon aria-hidden="true" src={item.iconSrc} size={21} />
           {item.label}
         </NavLink>
       ))}
@@ -68,11 +67,11 @@ export function Sidebar() {
     <aside className="fixed inset-y-3 left-3 z-20 hidden w-[214px] flex-col overflow-y-auto rounded-[28px] border border-white/90 bg-[linear-gradient(180deg,var(--animal-island-sidebar-bg-start),var(--animal-island-sidebar-bg-end))] p-4 shadow-island md:flex xl:w-[252px]">
       <NavLink className="flex items-center gap-3 px-2 py-2" to="/" aria-label="回到今日总览">
         <img
-          className="h-14 w-20 object-contain"
-          src={dailyAnimals}
+          className="size-14 shrink-0 rounded-2xl object-contain"
+          src="/brand/logo/exec-b9fa8384-df56-4039-aec2-66189c06b8d8.png"
           alt=""
-          width="1952"
-          height="1266"
+          width="1254"
+          height="1254"
         />
         <span>
           <strong className="block text-xl">日常集</strong>
@@ -89,7 +88,7 @@ export function Sidebar() {
           end
           to={overviewNavigation.to}
         >
-          <Icon aria-hidden="true" name={overviewNavigation.icon} size={21} />
+          <Icon aria-hidden="true" src={overviewNavigation.iconSrc} size={21} />
           {overviewNavigation.label}
         </NavLink>
         <NavigationGroup label="生活模块" items={lifeNavigation} />

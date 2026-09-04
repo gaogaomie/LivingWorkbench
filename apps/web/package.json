@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run ../../apps/web",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:desktop": "playwright test --config playwright.desktop.config.ts"
   },
   "dependencies": {
     "@daily-life/shared": "workspace:*",

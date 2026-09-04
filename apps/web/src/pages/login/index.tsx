@@ -14,7 +14,6 @@ import {
 } from "animal-island-ui";
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import dailyAnimals from "@/assets/daily-animals.png";
 import { useLogin } from "@/data-provider/mutations/use-login";
 import { useAuthSession } from "@/data-provider/queries/use-auth-session";
 import { notify } from "@/services/notification.service";
@@ -62,12 +61,12 @@ export function Component() {
             aria-labelledby="login-title"
           >
             <img
-              className="relative z-[3] mb-[-8px] h-auto w-[116px] select-none object-contain sm:w-[132px]"
-              src={dailyAnimals}
+              className="relative z-[3] mb-2 size-20 select-none rounded-2xl object-contain sm:size-24"
+              src="/brand/logo/exec-b9fa8384-df56-4039-aec2-66189c06b8d8.png"
               alt=""
               aria-hidden="true"
-              width={1952}
-              height={1266}
+              width={1254}
+              height={1254}
               draggable="false"
             />
             <Title size="large" color="app-yellow" className="relative z-[2] mb-[-12px]">

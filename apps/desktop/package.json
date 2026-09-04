@@ -1,0 +1,21 @@
+{
+  "name": "@daily-life/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "bun run ../../scripts/build-desktop.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@daily-life/shared": "workspace:*",
+    "@fastify/static": "10.1.3",
+    "better-sqlite3": "13.0.3",
+    "fastify": "^5.12.1",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^26.4.1"
+  }
+}

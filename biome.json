@@ -7,7 +7,8 @@
       "!!**/node_modules",
       "!!**/test-results",
       "!!**/playwright-report",
-      "!!bun.lock"
+      "!!bun.lock",
+      "!!apps/desktop/release"
     ]
   },
   "formatter": {

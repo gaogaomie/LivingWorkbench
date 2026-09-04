@@ -19,3 +19,6 @@ coverage/
 # Playwright output
 playwright-report/
 test-results/
+
+# Electron installers
+apps/desktop/release/

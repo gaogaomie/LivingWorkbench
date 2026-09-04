@@ -1,0 +1,14 @@
+{
+  "name": "daily-life-desktop",
+  "productName": "日常集",
+  "version": "0.1.0",
+  "description": "日常集 · 本地生活工作台",
+  "author": "Daily Life Workbench",
+  "private": true,
+  "main": "dist/main.cjs",
+  "dependencies": {
+    "argon2": "0.44.0",
+    "better-sqlite3": "13.0.3",
+    "sharp": "0.35.4"
+  }
+}

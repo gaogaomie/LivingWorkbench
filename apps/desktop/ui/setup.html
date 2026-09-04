@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>日常集 · 本地设置</title>
+  <link rel="stylesheet" href="setup.css">
+  <script src="setup.js" defer></script>
+</head>
+<body>
+  <main>
+    <header>
+      <img src="owl.png" alt="" width="112" height="112">
+      <p class="eyebrow">DAILY LIFE · ON YOUR DESKTOP</p>
+      <h1 id="heading">把日常，留在自己身边。</h1>
+      <p>记录保存在这台电脑。打开就能用，慢慢来就好。</p>
+    </header>
+    <form id="settings-form">
+      <fieldset id="account-fields">
+        <legend>先给自己的小岛起个名字</legend>
+        <div class="fields">
+          <label>本地用户名<input name="username" autocomplete="username" maxlength="64" required></label>
+          <label>登录密码<input name="password" type="password" autocomplete="new-password" minlength="8" maxlength="256" required placeholder="至少 8 位"></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>AI 生活观察员 <span>选填</span></legend>
+        <p class="hint">填入 DeepSeek 密钥后可联网解读。留空也能记账、安排日程和使用本地摘要。</p>
+        <label>DeepSeek API Key<input name="apiKey" type="password" autocomplete="off" maxlength="512" placeholder="密钥仅保存在系统安全存储保护的本地配置中"></label>
+        <div class="fields">
+          <label>模型<input name="model" value="deepseek-v4-flash" maxlength="100" required></label>
+          <label class="checkbox"><input name="clearApiKey" type="checkbox">清除已保存的密钥</label>
+        </div>
+        <p id="key-status" class="hint"></p>
+      </fieldset>
+      <p id="error" role="alert"></p>
+      <div class="actions">
+        <button type="button" id="import-button" class="secondary">导入已有工作台</button>
+        <button type="submit" id="save-button">开始我的日常</button>
+      </div>
+      <p id="import-hint" class="hint">导入会复制原账号、记录、附件及 .env 中的 DeepSeek 配置，原文件保持不变。导入前请暂停原工作台的编辑操作。</p>
+    </form>
+    <footer><span>本机数据目录</span><p id="data-directory"></p></footer>
+  </main>
+</body>
+</html>

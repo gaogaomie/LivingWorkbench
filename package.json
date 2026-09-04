@@ -12,7 +12,7 @@
     "dev": "bun run --filter './apps/*' dev",
     "dev:web": "bun run --cwd apps/web dev",
     "dev:server": "bun run --cwd apps/server dev",
-    "build": "bun run --filter '*' build",
+    "build": "bun run --cwd packages/shared build && bun run --cwd apps/server build && bun run build:desktop",
     "typecheck": "bun run --filter '*' typecheck",
     "test": "vitest run",
     "test:web": "vitest run apps/web",
@@ -25,11 +25,25 @@
     "check:backend": "bun run lint:backend && bun run check:backend-conventions && bun run --cwd packages/shared typecheck && bun run --cwd apps/server typecheck && bunx vitest run apps/server/src packages/shared/src && bun run --cwd apps/server build",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
-    "check": "bun run lint && bun run check:web-size && bun run typecheck && bun run test && bun run build"
+    "check": "bun run lint && bun run check:web-size && bun run typecheck && bun run test && bun run build",
+    "build:desktop": "bun run --cwd apps/web build && bun run --cwd apps/desktop build",
+    "desktop:deps": "npm ci --prefix apps/desktop/runtime && node scripts/rebuild-desktop.mjs",
+    "desktop": "bun run build:desktop && electron apps/desktop/runtime",
+    "package:desktop": "bun run scripts/package-desktop.ts",
+    "package:desktop:mac": "bun run scripts/package-desktop.ts mac",
+    "package:desktop:win": "bun run scripts/package-desktop.ts win",
+    "test:desktop": "vitest run apps/desktop/src",
+    "test:desktop:e2e": "bun run --cwd apps/web test:desktop"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.11",
+    "@electron/rebuild": "4.2.0",
+    "electron": "44.1.1",
+    "electron-builder": "26.15.3",
     "typescript": "^7.0.2",
     "vitest": "^4.1.11"
+  },
+  "build": {
+    "extends": "./apps/desktop/electron-builder.json"
   }
 }

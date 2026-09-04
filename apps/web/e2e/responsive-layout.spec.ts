@@ -98,6 +98,44 @@ test("1920px 宽屏下主要内容充分利用可用空间", async ({ page }) =>
   expect(widths.content / widths.available).toBeGreaterThanOrEqual(0.9);
 });
 
+test("桌面侧栏使用指定品牌 logo 且图片成功加载", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await mockApplicationShell(page);
+  await page.goto("/");
+
+  const logo = page.getByRole("link", { name: "回到今日总览", exact: true }).locator("img");
+  await expect(logo).toBeVisible();
+  await expect(logo).toHaveAttribute(
+    "src",
+    "/brand/logo/exec-b9fa8384-df56-4039-aec2-66189c06b8d8.png",
+  );
+  await expect(logo).toHaveJSProperty("naturalWidth", 1254);
+});
+
+test("登录页使用指定品牌 logo 且小屏没有横向溢出", async ({ page }) => {
+  await page.route("**/api/v1/auth/session", (route) =>
+    route.fulfill({
+      status: 401,
+      contentType: "application/json",
+      body: JSON.stringify({ code: 401, message: "请先登录", data: null }),
+    }),
+  );
+  await page.goto("/login");
+
+  const logo = page.locator('section[aria-labelledby="login-title"] > img');
+  await expect(logo).toBeVisible();
+  await expect(logo).toHaveAttribute(
+    "src",
+    "/brand/logo/exec-b9fa8384-df56-4039-aec2-66189c06b8d8.png",
+  );
+  await expect(logo).toHaveJSProperty("naturalWidth", 1254);
+  const dimensions = await page.evaluate(() => ({
+    viewportWidth: document.documentElement.clientWidth,
+    pageWidth: document.documentElement.scrollWidth,
+  }));
+  expect(dimensions.pageWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+});
+
 test("习惯页在中等与标准桌面视口均没有横向溢出", async ({ page }) => {
   await mockApplicationShell(page);
 
