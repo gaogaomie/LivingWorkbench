@@ -1,10 +1,11 @@
 import { createBrowserRouter } from "react-router-dom";
+import { PageLoading } from "../components/PageLoading";
 import { AppLayout } from "../layouts/AppLayout";
 import { ErrorPage } from "../pages/error/ErrorPage";
 import { OverviewPage } from "../pages/overview";
 import { AuthGuard } from "./AuthGuard";
 
-const routeFallback = <div aria-live="polite">页面加载中，请稍候…</div>;
+const routeFallback = <PageLoading />;
 
 export const router = createBrowserRouter([
   {

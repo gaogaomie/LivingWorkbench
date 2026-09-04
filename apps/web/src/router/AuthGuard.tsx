@@ -1,6 +1,6 @@
-import { Loading } from "animal-island-ui";
 import type { PropsWithChildren } from "react";
 import { Navigate, useLocation } from "react-router-dom";
+import { PageLoading } from "../components/PageLoading";
 import { useAuthSession } from "../data-provider/queries/use-auth-session";
 import { ApiClientError } from "../services/http-client";
 
@@ -9,7 +9,7 @@ export function AuthGuard({ children }: PropsWithChildren) {
   const session = useAuthSession();
 
   if (session.isPending) {
-    return <Loading />;
+    return <PageLoading />;
   }
 
   if (session.error instanceof ApiClientError && session.error.status === 401) {

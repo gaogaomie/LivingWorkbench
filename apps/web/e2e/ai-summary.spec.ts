@@ -75,7 +75,7 @@ test("AI 解读要求明确授权并展示 DeepSeek 提供方", async ({ page })
           dataThrough: "2026-09-03",
           kicker: "今日生活解读",
           headline: "小小的完成，也有清晰的方向",
-          summary: "今天的习惯和账目共同留下了稳定的生活线索。",
+          summary: "今天的习惯和账目共同留下了稳定的生活线索。".repeat(10),
           facts: [{ text: "完成 1/2 个习惯", source: "habit", recordPath: "/habits" }],
           affirmation: "你已经完成了今天计划的一半。",
           attention: null,
@@ -103,6 +103,46 @@ test("AI 解读要求明确授权并展示 DeepSeek 提供方", async ({ page })
 
   await expect(page.getByText("DeepSeek · deepseek-v4-pro")).toBeVisible();
   await expect(page.getByRole("heading", { name: "小小的完成，也有清晰的方向" })).toBeVisible();
+  const dialog = page.getByRole("dialog", { name: "今日 AI 解读" });
+  const title = dialog.getByText("今日 AI 解读", { exact: true });
+  const closeButton = dialog.getByRole("button", { name: "收好这张票据" });
+  for (const size of [
+    { width: 1440, height: 1000 },
+    { width: 1280, height: 640 },
+    { width: 393, height: 650 },
+  ]) {
+    await page.setViewportSize(size);
+    for (const control of [title, closeButton]) {
+      await expect(control).toBeInViewport({ ratio: 1 });
+      // Check hit testing too: visible bounding boxes alone miss SVG clipping.
+      await expect
+        .poll(() =>
+          control.evaluate((element) => {
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            const rect = range.getBoundingClientRect();
+            return [0.01, 0.5, 0.99].every((fraction) => {
+              const hit = document.elementFromPoint(
+                rect.left + rect.width * fraction,
+                rect.top + rect.height / 2,
+              );
+              return hit === element || element.contains(hit);
+            });
+          }),
+        )
+        .toBe(true);
+    }
+  }
+  const body = dialog.locator('[id$="-body"]');
+  await expect(body).toHaveCSS("scrollbar-width", "none");
+  await body.hover();
+  await page.mouse.wheel(0, 1500);
+  await expect.poll(() => body.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  await expect(closeButton).toBeInViewport({ ratio: 1 });
+  await page.screenshot({ path: test.info().outputPath("ai-summary-modal.png") });
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
+  await expect(generateButton).toBeFocused();
   expect(submittedPayload).toMatchObject({
     period: "today",
     style: "gentle",

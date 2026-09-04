@@ -7,10 +7,11 @@ import {
 } from "@daily-life/shared";
 import { Button, Checkbox, Icon, Modal, Radio, Tag, Typewriter } from "animal-island-ui";
 import { format, startOfWeek } from "date-fns";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useGenerateAiSummary } from "@/data-provider/ai";
 import { formatLocalDate } from "@/presentation/domain-formatters";
+import modalStyles from "./ai-summary-modal.module.css";
 
 interface AiSummarySectionProps {
   date: Date;
@@ -138,6 +139,7 @@ export function AiSummarySection({ date }: AiSummarySectionProps) {
   const [style, setStyle] = useState<AiSummaryStyle>("gentle");
   const [consent, setConsent] = useState<Array<string | number>>([]);
   const [modalOpen, setModalOpen] = useState(false);
+  const summaryTrigger = useRef<HTMLButtonElement | null>(null);
   const generateSummary = useGenerateAiSummary();
   const today = format(date, "yyyy-MM-dd");
   const dateLabel =
@@ -163,6 +165,8 @@ export function AiSummarySection({ date }: AiSummarySectionProps) {
     if (generateSummary.isPending) return;
     setModalOpen(false);
     generateSummary.reset();
+    // 等弹窗卸载完成后恢复焦点；生成期间按钮禁用会使组件库丢失原触发点。
+    requestAnimationFrame(() => summaryTrigger.current?.focus());
   };
 
   return (
@@ -203,7 +207,10 @@ export function AiSummarySection({ date }: AiSummarySectionProps) {
             size="large"
             disabled={!hasConsent || generateSummary.isPending}
             icon={<Icon name="icon-camera" size={22} />}
-            onClick={() => generate("today")}
+            onClick={(event) => {
+              summaryTrigger.current = event.currentTarget;
+              generate("today");
+            }}
           >
             生成今日解读
           </Button>
@@ -212,7 +219,10 @@ export function AiSummarySection({ date }: AiSummarySectionProps) {
             size="large"
             disabled={!hasConsent || generateSummary.isPending}
             icon={<Icon name="icon-miles" size={22} />}
-            onClick={() => generate("week")}
+            onClick={(event) => {
+              summaryTrigger.current = event.currentTarget;
+              generate("week");
+            }}
           >
             生成本周解读
           </Button>
@@ -230,6 +240,7 @@ export function AiSummarySection({ date }: AiSummarySectionProps) {
       />
 
       <Modal
+        className={modalStyles.modal ?? ""}
         open={modalOpen}
         title={period === "today" ? "今日 AI 解读" : "本周 AI 解读"}
         width={780}

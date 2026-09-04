@@ -1,0 +1,27 @@
+.modal {
+  max-height: calc(100dvh - 32px);
+}
+
+/* Modal 没有内容区样式插槽；仅在解读弹窗适配其外壳，避免 SVG 外形裁切头尾。 */
+.modal > div {
+  min-height: 0;
+  max-height: inherit;
+  padding: clamp(16px, 3vw, 32px);
+  clip-path: none;
+  border-radius: var(--animal-border-radius-lg);
+}
+
+.modal [id$="-body"] {
+  min-height: 0;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.modal [id$="-body"]::-webkit-scrollbar {
+  display: none;
+}
+
+.modal [id$="-body"] ~ div {
+  flex-shrink: 0;
+  padding-top: 12px;
+}

@@ -40,7 +40,7 @@ export function readServerConfig(env: NodeJS.ProcessEnv = process.env): ServerCo
     uploadDirectory: env.UPLOAD_DIR,
     sessionSecret: env.SESSION_SECRET,
     sessionTtlDays: env.SESSION_TTL_DAYS,
-    deepSeekApiKey: env.DEEPSEEK_API_KEY ?? null,
+    deepSeekApiKey: env.DEEPSEEK_API_KEY?.trim() || null,
     deepSeekModel: env.DEEPSEEK_MODEL,
     nodeEnv: env.NODE_ENV,
   });

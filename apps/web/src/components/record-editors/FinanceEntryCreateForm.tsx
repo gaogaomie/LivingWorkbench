@@ -108,7 +108,7 @@ function FinanceEntryForm({
 
   return (
     <Form id={formId} layout="vertical" onFinish={submit}>
-      <FormItem name="type" label="收支类型">
+      <FormItem label="收支类型">
         <Radio
           options={[
             { label: "支出", value: "expense" },
@@ -119,8 +119,9 @@ function FinanceEntryForm({
         />
       </FormItem>
       <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-        <FormItem name="amount" label="金额（元）">
+        <FormItem label="金额（元）">
           <Input
+            aria-label="金额（元）"
             inputMode="decimal"
             placeholder="例如 28.50"
             size="large"
@@ -129,7 +130,7 @@ function FinanceEntryForm({
             onChange={(event) => setAmount(event.target.value)}
           />
         </FormItem>
-        <FormItem name="categoryId" label="分类">
+        <FormItem label="分类">
           <Select
             aria-label="分类"
             options={categoryOptions}
@@ -138,7 +139,7 @@ function FinanceEntryForm({
           />
         </FormItem>
       </div>
-      <FormItem name="date" label="日期">
+      <FormItem label="日期">
         <DatePicker
           aria-label="日期"
           value={date}
@@ -146,8 +147,9 @@ function FinanceEntryForm({
           allowClear={false}
         />
       </FormItem>
-      <FormItem name="note" label="备注">
+      <FormItem label="备注">
         <Input
+          aria-label="备注"
           placeholder="这笔钱花在哪里？"
           allowClear
           value={note}
