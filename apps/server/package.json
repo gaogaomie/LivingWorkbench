@@ -20,7 +20,7 @@
     "@fastify/helmet": "^13.1.1",
     "@fastify/multipart": "10.1.1",
     "@fastify/rate-limit": "^10.3.0",
-    "argon2": "^0.44.0",
+    "argon2": "^0.45.1",
     "better-sqlite3": "^13.0.3",
     "drizzle-orm": "^0.45.2",
     "exceljs": "4.4.0",
