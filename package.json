@@ -41,7 +41,7 @@
     "electron": "44.1.1",
     "electron-builder": "26.15.3",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.0"
   },
   "build": {
     "extends": "./apps/desktop/electron-builder.json"
